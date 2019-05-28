@@ -19,43 +19,45 @@ if (!Directory.Exists (testsDirectory)) {
 	Environment.Exit (-1);
 }
 
-var testFilePattern = "test-*.xml";
-try {
-	var files = Directory.GetFiles (testsDirectory, testFilePattern, SearchOption.AllDirectories);
-	if (files.Length == 0) {
-		Console.WriteLine ($"Not files were found with the pattern '{testFilePattern}'");
-		Environment.Exit (-1);
-	}
+var testFilePattern = "*.xml";
+var files = Directory.GetFiles (testsDirectory, testFilePattern, SearchOption.AllDirectories);
+if (files.Length == 0) {
+	Console.WriteLine ($"Not files were found with the pattern '{testFilePattern}'");
+	Environment.Exit (-1);
+}
 
-	if (files.Length == 1) {
-		// we only have a single tests, so we do not need to do anything
-		Console.WriteLine ("Only one file was found, doing nothing.");
-		Environment.Exit (0);
-	}
+if (files.Length == 1) {
+	// we only have a single tests, so we do not need to do anything
+	Console.WriteLine ("Only one file was found, doing nothing.");
+	Environment.Exit (0);
+}
 
-	// get the total errors, failures, etc.. from all the files, this will be used to later
-	// write the main test-results node using the addition of all of them
-	var errors = 0L;
-	var inconclusive = 0L;
-	var ignored = 0L;
-	var invalid = 0L;
-	var notRun = 0L;
-	var total = 0L;
-	var failures = 0L;
-	var skipped = 0L;
-	var date = DateTime.Today;
-	TimeSpan? time = null;
-	string os_version = null;
-	string platform = null;
-	string cwd = null;
-	string machine_name = null;
-	string user = null;
-	string user_domain = null;
-	string nunit_version = null;
-	string clr_version = null;
+Console.WriteLine ($"Found {files.Length} xml files.");
 
-	foreach ( var filePath in files) {
-		Console.WriteLine ($"Reading {filePath}");
+// get the total errors, failures, etc.. from all the files, this will be used to later
+// write the main test-results node using the addition of all of them
+var errors = 0L;
+var inconclusive = 0L;
+var ignored = 0L;
+var invalid = 0L;
+var notRun = 0L;
+var total = 0L;
+var failures = 0L;
+var skipped = 0L;
+var date = DateTime.Today;
+TimeSpan? time = null;
+string os_version = null;
+string platform = null;
+string cwd = null;
+string machine_name = null;
+string user = null;
+string user_domain = null;
+string nunit_version = null;
+string clr_version = null;
+
+foreach (var filePath in files) {
+	Console.WriteLine ($"Reading {filePath}");
+	try {
 		using (var stream = new StreamReader (filePath))
 		using (var reader = XmlReader.Create (stream)) {
 			while (reader.Read ()) {
@@ -74,6 +76,7 @@ try {
 					else
 						time = TimeSpan.Parse (reader ["time"]);
 					if (reader.ReadToFollowing ("environment")) {
+						Console.WriteLine ($"Retrieving env information from file {filePath}");
 						if (reader.NodeType == XmlNodeType.Element && reader.Name == "environment") {
 							if (string.IsNullOrEmpty (os_version))
 								os_version = reader ["os-version"];
@@ -97,29 +100,36 @@ try {
 				}
 			}
 		}
+	} catch (Exception e) {
+		Console.WriteLine ($"Got exception '{e.Message}' reading file '{filePath}'");
+		Console.WriteLine ($"Ignoring file '{filePath}'");
 	}
+}
 
-	// create a writer for the final solution
-	var outPutPath = "tests-grouped-result.xml";
+// create a writer for the final solution
+var outPutPath = "tests-grouped-result.xml";
 
-	if (File.Exists (outPutPath))
-		File.Delete (outPutPath);
+if (File.Exists (outPutPath))
+	File.Delete (outPutPath);
 
-	using (var writer = File.CreateText (outPutPath)) {
-		Console.WriteLine ("Writing grouped result");
-		writer.WriteLine ("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-		writer.WriteLine ($"<test-results name=\"Test results\" errors=\"{errors}\" inconclusive=\"{inconclusive}\" ignored=\"{ignored}\" invalid=\"{invalid}\" not-run=\"{notRun}\" date=\"{date}\" time=\"{time.Value}\" total=\"{total}\" failures=\"{failures}\" skipped=\"{skipped}\">");
-		writer.WriteLine ($"  <environment os-version=\"{os_version}\" platform=\"{platform}\" cwd=\"{cwd}\" machine-name=\"{machine_name}\" user=\"{user}\" user-domain=\"{user_domain}\" nunit-version=\"{nunit_version}\" clr-version=\"{clr_version}\"></environment>");
-		writer.WriteLine ("  <culture-info current-culture=\"unknown\" current-uiculture=\"unknown\" />");
-		writer.WriteLine ($"  <test-suite type=\"Assemblies\" name=\"Device Tests\" executed=\"True\" success=\"{(errors == 0 && failures == 0)? "True" : "False" }\" result=\"{(errors == 0 && failures == 0)? "Success" : "Failure"}\" time=\"{time.Value}\">");
-    	writer.WriteLine ("    <results>");
-		foreach (var filePath in files) {
+using (var writer = File.CreateText (outPutPath)) {
+	Console.WriteLine ("Writing grouped result");
+	writer.WriteLine ("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+	writer.WriteLine ($"<test-results name=\"Test results\" errors=\"{errors}\" inconclusive=\"{inconclusive}\" ignored=\"{ignored}\" invalid=\"{invalid}\" not-run=\"{notRun}\" date=\"{date}\" time=\"{time.Value}\" total=\"{total}\" failures=\"{failures}\" skipped=\"{skipped}\">");
+	writer.WriteLine ($"  <environment os-version=\"{os_version}\" platform=\"{platform}\" cwd=\"{cwd}\" machine-name=\"{machine_name}\" user=\"{user}\" user-domain=\"{user_domain}\" nunit-version=\"{nunit_version}\" clr-version=\"{clr_version}\"></environment>");
+	writer.WriteLine ("  <culture-info current-culture=\"unknown\" current-uiculture=\"unknown\" />");
+	writer.WriteLine ($"  <test-suite type=\"Assemblies\" name=\"Device Tests\" executed=\"True\" success=\"{(errors == 0 && failures == 0)? "True" : "False" }\" result=\"{(errors == 0 && failures == 0)? "Success" : "Failure"}\" time=\"{time.Value}\">");
+	writer.WriteLine ("    <results>");
+	foreach (var filePath in files) {
+		try{
+			Console.WriteLine ($"Parsing file '{filePath}'");
 			var testName = "";
 			using (var stream = new StreamReader (filePath))
 			using (var reader = XmlReader.Create (stream)) {
 				while (reader.Read ()) {
 					if (reader.NodeType == XmlNodeType.Element && reader.Name == "test-results") { // grab the name of the test, will improve parsing on the server side
 						testName = reader ["name"];
+						Console.WriteLine ($"Test results name is '{testName}'");
 					}
 					if (reader.NodeType == XmlNodeType.Element && reader.Name == "test-suite" && (reader ["type"] == "Assemblies" || reader ["type"] == "TestSuite")) {
 						if (string.IsNullOrEmpty (testName)) {
@@ -133,18 +143,15 @@ try {
 					}
 				}
 			}
+		} catch (Exception e) {
+			Console.WriteLine ($"Got exception '{e.Message}' reading file '{filePath}'");
+			Console.WriteLine ($"Ignoring file '{filePath}'");
 		}
-		writer.WriteLine ("    </results>");
-		writer.WriteLine ("  </test-suite>");
-		writer.WriteLine ("</test-results>");
 	}
-	Console.WriteLine ($"File merge completed to file {outPutPath}");
-
-} catch (Exception e) {
-	Console.WriteLine ($"Got {e.Message}");
-	throw e;
-	Environment.Exit (-1);
+	writer.WriteLine ("    </results>");
+	writer.WriteLine ("  </test-suite>");
+	writer.WriteLine ("</test-results>");
 }
-
+Console.WriteLine ($"File merge completed to file {outPutPath}");
 
 Environment.Exit (0);
