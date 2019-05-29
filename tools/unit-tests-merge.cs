@@ -25,7 +25,7 @@ if (files.Length == 0) {
 	Console.WriteLine ($"Not files were found with the pattern '{testFilePattern}'");
 	// get the files found and list them, useful for debugging
 	files = Directory.GetFiles (testsDirectory, "*.*", SearchOption.AllDirectories);
-	Console.WriteLine ("Files found in the directory are:")
+	Console.WriteLine ("Files found in the directory are:");
 	foreach (var filePath in files) {
 		Console.WriteLine (filePath);
 	}
