@@ -51,7 +51,7 @@ var total = 0L;
 var failures = 0L;
 var skipped = 0L;
 var date = DateTime.Today;
-TimeSpan? time = null;
+var time = TimeSpan.Zero;
 string os_version = null;
 string platform = null;
 string cwd = null;
@@ -77,10 +77,7 @@ foreach (var filePath in files) {
 					total += Convert.ToInt64 (reader ["total"]);
 					failures += Convert.ToInt64 (reader ["failures"]);
 					skipped += Convert.ToInt64 (reader ["skipped"]);
-					if (time.HasValue)
-						time = time.Value.Add (TimeSpan.Parse (reader ["time"]));
-					else
-						time = TimeSpan.Parse (reader ["time"]);
+					time = time.Add (TimeSpan.Parse (reader ["time"]));
 					if (reader.ReadToFollowing ("environment")) {
 						Console.WriteLine ($"Retrieving env information from file {filePath}");
 						if (reader.NodeType == XmlNodeType.Element && reader.Name == "environment") {
@@ -121,10 +118,10 @@ if (File.Exists (outPutPath))
 using (var writer = File.CreateText (outPutPath)) {
 	Console.WriteLine ("Writing grouped result");
 	writer.WriteLine ("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-	writer.WriteLine ($"<test-results name=\"Test results\" errors=\"{errors}\" inconclusive=\"{inconclusive}\" ignored=\"{ignored}\" invalid=\"{invalid}\" not-run=\"{notRun}\" date=\"{date}\" time=\"{time.Value}\" total=\"{total}\" failures=\"{failures}\" skipped=\"{skipped}\">");
+	writer.WriteLine ($"<test-results name=\"Test results\" errors=\"{errors}\" inconclusive=\"{inconclusive}\" ignored=\"{ignored}\" invalid=\"{invalid}\" not-run=\"{notRun}\" date=\"{date}\" time=\"{time}\" total=\"{total}\" failures=\"{failures}\" skipped=\"{skipped}\">");
 	writer.WriteLine ($"  <environment os-version=\"{os_version}\" platform=\"{platform}\" cwd=\"{cwd}\" machine-name=\"{machine_name}\" user=\"{user}\" user-domain=\"{user_domain}\" nunit-version=\"{nunit_version}\" clr-version=\"{clr_version}\"></environment>");
 	writer.WriteLine ("  <culture-info current-culture=\"unknown\" current-uiculture=\"unknown\" />");
-	writer.WriteLine ($"  <test-suite type=\"Assemblies\" name=\"Device Tests\" executed=\"True\" success=\"{(errors == 0 && failures == 0)? "True" : "False" }\" result=\"{(errors == 0 && failures == 0)? "Success" : "Failure"}\" time=\"{time.Value}\">");
+	writer.WriteLine ($"  <test-suite type=\"Assemblies\" name=\"Device Tests\" executed=\"True\" success=\"{(errors == 0 && failures == 0)? "True" : "False" }\" result=\"{(errors == 0 && failures == 0)? "Success" : "Failure"}\" time=\"{time}\">");
 	writer.WriteLine ("    <results>");
 	foreach (var filePath in files) {
 		try{
