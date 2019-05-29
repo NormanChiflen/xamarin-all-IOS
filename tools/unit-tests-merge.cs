@@ -19,10 +19,16 @@ if (!Directory.Exists (testsDirectory)) {
 	Environment.Exit (-1);
 }
 
-var testFilePattern = "*.xml";
+var testFilePattern = "test-*.xml";
 var files = Directory.GetFiles (testsDirectory, testFilePattern, SearchOption.AllDirectories);
 if (files.Length == 0) {
 	Console.WriteLine ($"Not files were found with the pattern '{testFilePattern}'");
+	// get the files found and list them, useful for debugging
+	files = Directory.GetFiles (testsDirectory, "*.*", SearchOption.AllDirectories);
+	Console.WriteLine ("Files found in the directory are:")
+	foreach (var filePath in files) {
+		Console.WriteLine (filePath);
+	}
 	Environment.Exit (-1);
 }
 
