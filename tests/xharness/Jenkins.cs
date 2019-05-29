@@ -315,17 +315,6 @@ namespace xharness
 						yield return new TestData { Variation = "Release (interpreter -mscorlib)", MTouchExtraArgs = "--interpreter=-mscorlib", Debug = false, Profiling = false, Undefines = "FULL_AOT_RUNTIME" };
 					}
 					break;
-				case "mini":
-					if (supports_debug)
-						yield return new TestData { Variation = "Debug: SGenConc", MTouchExtraArgs = "", Debug = true, Profiling = false, MonoNativeLinkMode = MonoNativeLinkMode.Static, EnableSGenConc = true};
-					if (supports_interpreter) {
-						if (supports_debug) {
-							yield return new TestData { Variation = "Debug (interpreter)", MTouchExtraArgs = "--interpreter", Debug = true, Profiling = false, Undefines = "FULL_AOT_RUNTIME" };
-							yield return new TestData { Variation = "Debug (interpreter -mscorlib)", MTouchExtraArgs = "--interpreter=-mscorlib", Debug = true, Profiling = false, Undefines = "FULL_AOT_RUNTIME" };
-						}
-						yield return new TestData { Variation = "Release (interpreter -mscorlib)", MTouchExtraArgs = "--interpreter=-mscorlib", Debug = false, Profiling = false, Undefines = "FULL_AOT_RUNTIME" };
-					}
-					break;
 				}
 				break;
 			case "iPhoneSimulator":
@@ -601,15 +590,17 @@ namespace xharness
 
 				if (!project.SkipwatchOSVariation) {
 					var watchOSProject = project.AsWatchOSProject ();
-					var buildWatch32 = new XBuildTask {
-						Jenkins = this,
-						ProjectConfiguration = "Debug32",
-						ProjectPlatform = "iPhone",
-						Platform = TestPlatform.watchOS_32,
-						TestName = project.Name,
-					};
-					buildWatch32.CloneTestProject (watchOSProject);
-					rv.Add (new RunDeviceTask (buildWatch32, Devices.ConnectedWatch) { Ignored = ignored || !IncludewatchOS, BuildOnly = project.BuildOnly });
+					if (!project.SkipwatchOS32Variation) {
+						var buildWatch32 = new XBuildTask {
+							Jenkins = this,
+							ProjectConfiguration = "Debug32",
+							ProjectPlatform = "iPhone",
+							Platform = TestPlatform.watchOS_32,
+							TestName = project.Name,
+						};
+						buildWatch32.CloneTestProject (watchOSProject);
+						rv.Add (new RunDeviceTask (buildWatch32, Devices.ConnectedWatch) { Ignored = ignored || !IncludewatchOS, BuildOnly = project.BuildOnly });
+					}
 
 					if (!project.SkipwatchOSARM64_32Variation) {
 						var buildWatch64_32 = new XBuildTask {
@@ -676,10 +667,6 @@ namespace xharness
 		{
 			// https://github.com/xamarin/maccore/issues/1008
 			ForceExtensionBuildOnly = true;
-
-			// https://github.com/xamarin/maccore/issues/1011
-			foreach (var mono in Harness.IOSTestProjects.Where (x => x.Name == "mini"))
-				mono.BuildOnly = true;
 		}
 
 		void SelectTestsByModifiedFiles (int pull_request)
@@ -1187,7 +1174,6 @@ namespace xharness
 				if (Harness.InWrench)
 					log = Log.CreateAggregatedLog (log, new ConsoleLog ());
 				Harness.HarnessLog = MainLog = log;
-				Harness.HarnessLog.Timestamp = true;
 
 				var tasks = new List<Task> ();
 				if (IsServerMode)
@@ -1203,7 +1189,6 @@ namespace xharness
 				}
 				if (!string.IsNullOrEmpty (Harness.PeriodicCommand)) {
 					var periodic_log = Logs.Create ("PeriodicCommand.log", "Periodic command log");
-					periodic_log.Timestamp = true;
 					Task.Run (async () => await ExecutePeriodicCommandAsync (periodic_log));
 				}
 
@@ -2974,7 +2959,6 @@ namespace xharness
 					make.StartInfo.Arguments = Target;
 					SetEnvironmentVariables (make);
 					var log = Logs.Create ($"make-{Platform}-{Timestamp}.txt", "Build log");
-					log.Timestamp = true;
 					LogEvent (log, "Making {0} in {1}", Target, WorkingDirectory);
 					if (!Harness.DryRun) {
 						var timeout = Timeout;
@@ -3172,7 +3156,6 @@ namespace xharness
 			using (var resource = await NotifyAndAcquireDesktopResourceAsync ()) {
 				var xmlLog = Logs.CreateFile ($"log-{Timestamp}.xml", "XML log");
 				var log = Logs.Create ($"execute-{Timestamp}.txt", "Execution log");
-				log.Timestamp = true;
 				FindNUnitConsoleExecutable (log);
 				using (var proc = new Process ()) {
 
@@ -3359,7 +3342,6 @@ namespace xharness
 					proc.StartInfo.EnvironmentVariables ["MONO_DEBUG"] = "no-gdb-backtrace";
 					Jenkins.MainLog.WriteLine ("Executing {0} ({1})", TestName, Mode);
 					var log = Logs.Create ($"execute-{Platform}-{Timestamp}.txt", "Execution log");
-					log.Timestamp = true;
 					if (!Harness.DryRun) {
 						ExecutionResult = TestExecutingResult.Running;
 
@@ -3732,7 +3714,7 @@ namespace xharness
 
 					if (!Failed) {
 						// Install the app
-						this.install_log = new AppInstallMonitorLog (Logs.Create ($"install-{Timestamp}.log", "Install log", timestamp: true));
+						this.install_log = new AppInstallMonitorLog (Logs.Create ($"install-{Timestamp}.log", "Install log"));
 						try {
 							runner.MainLog = this.install_log;
 							var install_result = await runner.InstallAsync (install_log.CancellationToken );
