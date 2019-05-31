@@ -501,6 +501,7 @@ namespace xharness
 							}
 						}
 						// we do not longer need the tmp file
+						main_log.WriteLine ($"Assing xml log from path {path}");
 						Logs.AddFile (path, "Test xml");
 					}
 					return parseResult;
