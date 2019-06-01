@@ -479,6 +479,7 @@ namespace xharness
 						streamReaderTmp.DiscardBufferedData ();
 						var path = listener_log.FullPath;
 						path = Path.ChangeExtension (path, "xml");
+						main_log.WriteLine ($"Xml result will be written too path {path}");
 						// both the nunit and xunit runners are not
 						// setting the test results correctly, lets add them
 						using (var xmlWriter = new StreamWriter (path)) {
@@ -501,7 +502,7 @@ namespace xharness
 							}
 						}
 						// we do not longer need the tmp file
-						main_log.WriteLine ($"Assing xml log from path {path}");
+						main_log.WriteLine ($"Adding xml log from path {path}");
 						Logs.AddFile (path, "Test xml");
 					}
 					return parseResult;
