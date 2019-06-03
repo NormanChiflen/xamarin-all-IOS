@@ -668,8 +668,14 @@ namespace xharness
 		
 		public bool InJenkins {
 			get {
+				// on vsts we are not using the buildRev to be jenkins, we could create
+				// a new property stating that we are on vsts and then change every single
+				// check for this property and add IsVSTS to it, but that will be error prone
+				// and we want the VSTS run of xharness to be the same as the jenkins one 
+				// that is, xml logs, xml parsing etc.. So we check got env vars
 				var buildRev = Environment.GetEnvironmentVariable ("BUILD_REVISION");
-				return !string.IsNullOrEmpty (buildRev) && buildRev == "jenkins";
+				var vstsAgent = Environment.GetEnvironmentVariable ("VSTS_AGENT_SVC");
+				return (!string.IsNullOrEmpty (buildRev) && buildRev == "jenkins") || !string.IsNullOrEmpty (vstsAgent);
 			}
 		}
 		
