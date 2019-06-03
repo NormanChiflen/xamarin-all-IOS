@@ -7,6 +7,10 @@ var args = Environment.GetCommandLineArgs ();
 // first arg is "/Library/Frameworks/Mono.framework/Versions/4.8.0/lib/mono/4.5/csharp.exe"
 // second arg the script itself
 // then comes the ones we care about, the path with all the xunit and nunit files
+Console.WriteLine ("Starting xml merging process.");
+var vstsAgent = Environment.GetEnvironmentVariable ("VSTS_AGENT_SVC");
+if (string.IsNullOrEmpty (vstsAgent)) 
+	Console.WriteLine ("WARNING: Script is not running on VSTS mode!!!.");
 
 if (args.Length < 3) {
 	Console.WriteLine ($"Missing path for the directory that contains the test results files.");
