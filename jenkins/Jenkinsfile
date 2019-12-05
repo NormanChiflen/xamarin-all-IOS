@@ -1,4 +1,4 @@
-﻿#!/bin/groovy
+#!/bin/groovy
 
 // global variables
 repository = "xamarin/xamarin-macios"
