@@ -1,4 +1,4 @@
-#!/bin/groovy
+﻿#!/bin/groovy
 
 // global variables
 repository = "xamarin/xamarin-macios"
@@ -519,7 +519,8 @@ timestamps {
                                         sh (returnStatus: true, script: "security create-keychain -p ${env.KEYCHAIN_PASS} login.keychain") // needed to repopulate the keychain
                                         sh ("security unlock-keychain -p ${env.KEYCHAIN_PASS} login.keychain")
                                         timeout (time: 90, unit: 'MINUTES') {
-                                          sh ("python release-scripts/sign_and_notarize.py -a ${env.APP_ID} -i ${env.INSTALL_ID} -u ${env.APPLE_ACCOUNT} -p ${env.APPLE_PASS} -t ${env.TEAM_ID} -d package/notarized -e ${entitlements} -k login.keychain " + pkgs.flatten ().join (" "))
+                                            sh ("ruby release-scripts/notarize.rb ${workspace}/package/xamarin.ios-*.pkg ${env.APP_ID} ${env.APPLE_ACCOUNT} ${env.APPLE_PASS} ${env.TEAM_ID} ${workspace}/notarized")
+                                            sh ("ruby release-scripts/notarize.rb ${workspace}/package/xamarin.mac-*.pkg ${env.APP_ID} ${env.APPLE_ACCOUNT} ${env.APPLE_PASS} ${env.TEAM_ID} ${workspace}/notarized")
                                         }
                                     }
 
