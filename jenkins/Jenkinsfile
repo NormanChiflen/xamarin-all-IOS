@@ -519,8 +519,8 @@ timestamps {
                                         sh (returnStatus: true, script: "security create-keychain -p ${env.KEYCHAIN_PASS} login.keychain") // needed to repopulate the keychain
                                         sh ("security unlock-keychain -p ${env.KEYCHAIN_PASS} login.keychain")
                                         timeout (time: 90, unit: 'MINUTES') {
-                                            sh ("ruby release-scripts/notarize.rb ${workspace}/package/xamarin.mac-*.pkg ${env.APP_ID} ${env.APPLE_ACCOUNT} ${env.APPLE_PASS} ${env.TEAM_ID} ${workspace}/notarized")
                                             sh ("ruby release-scripts/notarize.rb ${workspace}/package/xamarin.ios-*.pkg ${env.APP_ID} ${env.APPLE_ACCOUNT} ${env.APPLE_PASS} ${env.TEAM_ID} ${workspace}/notarized")
+                                            sh ("ruby release-scripts/notarize.rb ${workspace}/package/xamarin.mac-*.pkg ${env.APP_ID} ${env.APPLE_ACCOUNT} ${env.APPLE_PASS} ${env.TEAM_ID} ${workspace}/notarized")
                                         }
                                     }
 
