@@ -8,12 +8,13 @@ endif
 
 ifdef ENABLE_XAMARIN
 NEEDED_MACCORE_VERSION := 92433b7757c57de089b3edb0e7060d90363273f9
-NEEDED_MACCORE_BRANCH := master
+NEEDED_MACCORE_BRANCH := dev/trevors/entitle191219
 
 MACCORE_DIRECTORY := maccore
 MACCORE_MODULE    := git@github.com:xamarin/maccore.git
 MACCORE_VERSION   := $(shell cd $(MACCORE_PATH) 2> /dev/null && git rev-parse HEAD 2> /dev/null)
-MACCORE_BRANCH    := $(shell cd $(MACCORE_PATH) 2> /dev/null && git symbolic-ref --short HEAD 2> /dev/null)
+MACCORE_BRANCH    := dev/trevors/entitle191219
+#$(shell cd $(MACCORE_PATH) 2> /dev/null && git symbolic-ref --short HEAD 2> /dev/null)
 endif
 
 define CheckVersionTemplate
