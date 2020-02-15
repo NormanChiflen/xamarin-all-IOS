@@ -1,0 +1,20 @@
+# iOS device pipeline, this file sets the different parameters required by the device-tests-common-yml, which contains all the steps and the interesting logic.
+
+# lame! cannot have the resources in the template.. :/
+resources:
+  repositories:
+  - repository: maccore
+    type: github
+    name: xamarin/maccore
+    ref: refs/heads/device-tests-yaml # should this be on a branch and not on master???
+    endpoint: xamarin
+
+# Use the matrix template to devine a pipeline that will run the ios64b device tests.
+jobs:
+- template: templates/job-matrix.yml # all the smart stuff happens in the template, just needed to set the params
+  parameters:
+    variation: 'iOS' 
+    pool: 'VSEng-Xamarin-QA'
+    demands: 'ios'
+    deviceLabel: 'run-ios-64-tests'
+    timeout: 1000
