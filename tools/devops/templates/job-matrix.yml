@@ -1,0 +1,186 @@
+# Common template that contains a matrix definition of the different jobs to be performed for device testing
+# in xamarin-macios. The template defines a number of jobs that contains the project tests devided in groups,
+# those are executed by different jobs in parallel (depending on agent availability) and later create a job
+# that uploads the tests results and updates the status of github.
+#
+# And advance reader will notice that the following can be done with a much nicer, less verbose yml
+#
+#
+#- job: macOS
+#  displayName: 'Run iOS Device Tests'
+#  timeoutInMinutes: 1000
+#
+#  pool: 
+#   name: 'VSEng-Xamarin-Mac-Devices'
+#   demands: 'ios'
+#
+#  strategy:
+#    matrix:
+#     a:
+#       myvar: A
+#     b:
+#     myvar: B
+# The problem with the above example is that it adds a lot of complexity when trying to fan in the different jobs into the final job
+# that will produce the test results and will set the github status only once. For example addin a job
+#
+#- job: publishResults
+#  dependsOn
+#  - macOS
+#  steps:
+#  - script: echo 'Hello from job $(myvar)'
+#
+# Will not mean that once A and B are done we will echo the hello world, but we will have one depending on which leg is running, that means,
+# is not a fan in :/
+#
+# The template takes the following parameters:
+#
+# variation: Contains the string that will be used to identify the variation of the jobs executed. This is used to update the display names of the different jobs.
+# pool: The agent pool to be used.
+# demands: Contains the demands that the agents should have. This is used to state if the pipeline requires and iOS device, tvOS etc..
+# deviceLabel: Provide the device label used by xharness to decide what device type should be used in the tests execution.
+# timeout: The timeout of the jobs in minutes.
+
+parameters:
+- name: variation 
+  type: string 
+  default: iOS
+
+- name: pool
+  type: string 
+  default: 'VSEng-Xamarin-Mac-Devices' # default ddfun pool
+
+- name: demands
+  type: string 
+  default: 'ios' # we default to ios devices
+
+- name: deviceLabel
+  type: string 
+  default: 'run-ios-64-tests' # default to iOS 64b devices
+
+- name: timeout
+  type: number
+  default: 1000
+
+jobs:
+
+###
+### Run all the xamarin tests, not bcl or mscorlib 
+###
+
+- job: DDFun 
+  displayName: 'Run ${{ parameters.variation }} Xamarin only Device Tests'
+  timeoutInMinutes: ${{ parameters.timeout }} 
+
+  pool: 
+    name: ${{ parameters.pool }} 
+    demands: ${{ parameters.demands }}
+
+  variables:
+    CONTEXT: '${{ parameters.variation }}-DDFun'
+    TESTS_EXTRA_ARGUMENTS: '--label=${{ parameters.deviceLabel }},run-xamarin-tests' # run all tests but the bcl ones
+
+  steps:
+  - template: device-tests.yml # all the smart stuff happens in the template, just needed to set the params
+
+###
+### Run the monotouch tests.
+###
+
+- job: DDFun_monotouch
+  displayName: 'Run ${{ parameters.variation }} Monotouch only Device Tests'
+  timeoutInMinutes: ${{ parameters.timeout }} 
+
+  pool: 
+    name: ${{ parameters.pool }} 
+    demands: ${{ parameters.demands }}
+
+  variables:
+    CONTEXT: '${{ parameters.variation }}-monotouch-DDFun'
+    TESTS_EXTRA_ARGUMENTS: '--label=${{ parameters.deviceLabel }},run-monotouch-tests' # run all tests but the bcl ones
+
+  steps:
+  - template: device-tests.yml # all the smart stuff happens in the template, just needed to set the params
+
+###
+### Run all the xunit based bcl tests
+###
+
+- job: DDFun_xUnit
+  displayName: 'Run ${{ parameters.variation}} xUnit BCL Device Tests'
+  timeoutInMinutes: ${{ parameters.timeout }}
+
+  pool: 
+    name: ${{ parameters.pool }}
+    demands: ${{ parameters.demands }}
+
+  variables:
+    CONTEXT: '${{ parameters.variation }}-New-BCL-DDFun'
+    TESTS_EXTRA_ARGUMENTS: '--label=${{ parameters.deviceLabel }},run-new-bcl-tests,skip-mscorlib-tests' # run only the new bcl tests
+
+  steps:
+  - template: device-tests.yml # all the smart stuff happens in the template, just needed to set the params
+
+###
+### Run all the nunit based bcl tests
+###
+
+- job: DDFun_NUnit
+  displayName: 'Run ${{ parameters.variation }} NUnit BCL Device Tests'
+  timeoutInMinutes: ${{ parameters.timeout }}
+
+  pool: 
+    name: ${{ parameters.pool }}
+    demands: ${{ parameters.demands }}
+
+  variables:
+    CONTEXT: '${{ parameters.variation }}-Old-BCL-DDFun'
+    TESTS_EXTRA_ARGUMENTS: '--label=${{ parameters.deviceLabel }},run-old-bcl-tests' # run only the new bcl tests
+
+  steps:
+  - template: device-tests.yml # all the smart stuff happens in the template, just needed to set the params
+
+###
+### Run the mscorlib based tests
+###
+
+- job: DDFun_Mscorlib
+
+  displayName: 'Run ${{ parameters.variation }} mscorlib BCL Device Tests'
+  timeoutInMinutes: ${{ parameters.timeout }} 
+
+  pool: 
+    name: ${{ parameters.pool }}
+    demands: ${{ parameters.demands }}
+
+  variables:
+    CONTEXT: '${{ parameters.variation }}-mscorlib-DDFun'
+    TESTS_EXTRA_ARGUMENTS: '--label=${{ parameters.deviceLabel }},run-mscorlib-tests' # run only the new bcl tests
+
+  steps:
+  - template: device-tests.yml # all the smart stuff happens in the template, just needed to set the params
+
+###
+### Fan in job to get the results and upload them
+###
+
+- job: 'results'
+  displayName: 'Publish ${{ parameters.variation }} Device Tests results'
+  timeoutInMinutes: ${{ parameters.timeout }}
+
+  pool: 
+    name: ${{ parameters.pool }}
+
+  variables:
+    CONTEXT: '${{ parameters.variation }}-DDFun'
+
+  dependsOn:
+  - DDFun
+  - DDFun_monotouch
+  - DDFun_xUnit
+  - DDFun_NUnit
+  - DDFun_Mscorlib
+
+  condition: always() # always notify of what happened.
+
+  steps:
+  - template: publish-results.yml # template contains the steps to get all test reports and upload them

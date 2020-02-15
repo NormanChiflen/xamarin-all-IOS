@@ -9,12 +9,12 @@ resources:
     ref: refs/heads/device-tests-yaml # should this be on a branch and not on master???
     endpoint: xamarin
 
+# Use the matrix template to devine a pipeline that will run the ios64b device tests.
 jobs:
-- template: device-tests-common.yml # all the smart stuff happens in the template, just needed to set the params
+- template: templates/job-matrix.yml # all the smart stuff happens in the template, just needed to set the params
   parameters:
-    name: 'macOS'
-    displayName: 'Run iOS Device Tests'
+    variation: 'iOS' 
     pool: 'VSEng-Xamarin-Mac-Devices'
     demands: 'ios'
-    statusContext: 'iOS-DDFun'
-    testsLabels: '--label=run-ios-64-tests'
+    deviceLabel: 'run-ios-64-tests'
+    timeout: 1000
