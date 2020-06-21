@@ -46,7 +46,9 @@ stages:
     timeoutInMinutes: 1000
     pool:
       name: ${{ parameters.iOSDevicePool }}
-      demands: ${{ parameters.iOSDeviceDemand }}
+      demands:
+      - agent.os -equals Darwin 
+      - ${{ parameters.iOSDeviceDemand }}
     steps:
     - template: device-tests.yml
       parameters:

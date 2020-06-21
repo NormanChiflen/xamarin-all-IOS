@@ -52,6 +52,14 @@ steps:
   displayName: 'Notify failed script tests'
   condition: failed() # we failed running the tests, therefore stop the pipeline
 
+- bash: |
+    echo "OS Info:"
+    echo $AGENT_OS
+    echo $AGENT_OS_VERSION
+  env:
+    AGENT_OS: $(Agent.OS)
+    AGENT_OS_VERSION: $(Agent.OSVersion)
+
 # Uses the powershell cmdlet to print useful information about the system. Will always be executed.
 - pwsh: |
     Import-Module $Env:SYSTEM_DEFAULTWORKINGDIRECTORY/xamarin-macios/tools/devops/device-tests/scripts/System.psm1
