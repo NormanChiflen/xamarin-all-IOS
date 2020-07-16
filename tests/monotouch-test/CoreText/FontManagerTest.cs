@@ -229,11 +229,10 @@ namespace MonoTouchFixtures.CoreText {
 #endif
 
 		[Test]
-		[ExpectedException (typeof (ArgumentNullException))]
 		public void GetFontsNullUrl ()
 		{
 			TestRuntime.AssertXcodeVersion (5, 0);
-			CTFontManager.GetFonts (null);
+			Assert.Throws<ArgumentNullException> (() => CTFontManager.GetFonts (null));
 		}
 
 		[Test]
