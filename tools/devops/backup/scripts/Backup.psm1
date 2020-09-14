@@ -60,7 +60,6 @@ function New-Backup
         $Url
     )
 
-    $path = Get-Location
     # in order to perform a backup we have to perform the following steps:
     # 1. Checkout the dir.
     # 2. Fetch all the remote branches.
@@ -68,8 +67,9 @@ function New-Backup
     # 4. Create the bundle
 
     Write-Host "Cloning into $Repository $Url"
-    Start-Process -FilePath "git" -WorkingDirectory $path -ArgumentList "clone $Url $Repository" -Wait
+    Start-Process -FilePath "git" -ArgumentList "clone $Url $Repository" -Wait
     # should have the dir present
+    Get-ChildItem -Path .
     cd $Repository
     $remoteBranches = Get-AllRemoteBranches
     for ( $index = 0; $index -lt $remoteBranches.Count; $index++) {
