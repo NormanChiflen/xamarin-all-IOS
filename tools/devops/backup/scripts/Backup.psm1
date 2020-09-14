@@ -53,7 +53,7 @@ function New-Backup
     (
         [Parameter(Mandatory)]
         [String]
-        $Repository,
+        $Repository
     )
 
     # in order to perform a backup we have to perform the following steps:
