@@ -32,12 +32,17 @@ jobs:
   - powershell: |
       Get-ChildItem
       Import-Module $Env:SYSTEM_DEFAULTWORKINGDIRECTORY\xamarin-macios\tools\devops\backup\scripts\Backup.psm1
-      Remove-Item -LiteralPath working-dir -Force -Recurse
+      if (Test-Path "working-dir") {
+          Remove-Item -LiteralPath working-dir -Force -Recurse
+      }
+      if (Test-Path "backups") {
+          Remove-Item -LiteralPath backups -Force -Recurse
+      }
       New-Item -Name working-dir -ItemType directory
+      New-Item -Name backups -ItemType directory
       Set-Location -Path working-dir
       New-XamarinMaciosBackup
       Set-Location -Path .. 
-      mkdir backups
       mv working-dir/*-bundle backups
     displayName: 'Create backups'
     condition: always()
