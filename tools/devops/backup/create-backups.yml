@@ -1,0 +1,52 @@
+# Xamarin
+# Create code backups
+
+variables:
+  poolName: 'VSEngDeploymentPool'
+
+resources:
+  repositories:
+  - repository: maccore
+    type: github
+    name: xamarin/maccore
+    ref: refs/heads/main
+    endpoint: xamarin
+
+variables:
+  - group: xamops-azdev-secrets
+  - group: Xamarin Release
+  - group: Xamarin-Secrets
+
+jobs:
+- job: backup-code 
+  displayName: Backup xamarin-macios code 
+  timeoutInMinutes: 1000
+
+  pool:
+    name: '$(poolName)'
+
+  steps:
+  - checkout: self
+  - checkout: maccore
+    persistCredentials: true
+
+  - powershell: |
+    Import-Module $Env:SYSTEM_DEFAULTWORKINGDIRECTORY\xamarin-macios\tools\devops\backup\scripts\Backup.psm1
+    mkdir working-dir
+    cd working-dir
+    New-XamarinMaciosBackup
+    cd ..
+    mkdir backups
+    mv working-dir/*-bundle backups
+  displayName: 'Create backups'
+  condition: always()
+  timeoutInMinutes: 1
+
+  - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
+    displayName: 'Publish to Artifact Services Drop'
+    inputs:
+      dropServiceURI: 'https://devdiv.artifacts.visualstudio.com/DefaultCollection'
+      buildNumber: 'xamarin-macios/backups/$(Build.BuildNumber)/$(Build.BuildId)'
+      sourcePath: backups
+      detailedLog: true
+      usePat: true 
