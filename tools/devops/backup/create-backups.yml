@@ -49,6 +49,6 @@ jobs:
     inputs:
       dropServiceURI: 'https://devdiv.artifacts.visualstudio.com/DefaultCollection'
       buildNumber: 'xamarin-macios/backups/$(Build.BuildNumber)/$(Build.BuildId)'
-      sourcePath: backups
+      sourcePath: $(System.DefaultWorkingDirectory)\backups
       detailedLog: true
       usePat: true 
