@@ -40,7 +40,7 @@ jobs:
       New-Item -Name backups -ItemType directory
       New-XamarinMaciosBackup
       Set-Location -Path .. 
-      mv working-dir/*-bundle backups
+      mv *-bundle backups
     displayName: 'Create backups'
     condition: always()
 
