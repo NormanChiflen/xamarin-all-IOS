@@ -30,7 +30,9 @@ jobs:
     persistCredentials: true
 
   - powershell: |
+      Get-ChildItem
       Import-Module $Env:SYSTEM_DEFAULTWORKINGDIRECTORY\xamarin-macios\tools\devops\backup\scripts\Backup.psm1
+      Remove-Item -LiteralPath working-dir -Force -Recurse
       New-Item -Name working-dir -ItemType directory
       Set-Location -Path working-dir
       New-XamarinMaciosBackup
