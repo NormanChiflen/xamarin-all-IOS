@@ -18,9 +18,9 @@ resources:
     name: xamarin/XmlDocSync
     ref: refs/heads/main
     endpoint: xamarin
-  - repository: ios-api-docs
+  - repository: apple-api-docs
     type: github
-    name: xamarin/ios-api-docs
+    name: xamarin/apple-api-docs
     ref: refs/heads/main
     endpoint: xamarin
   - repository: mac-api-docs
