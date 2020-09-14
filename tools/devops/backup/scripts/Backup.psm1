@@ -93,11 +93,6 @@ function New-XamarinMaciosBackup
     $repositories=@(
         "xamarin-macios"
         "maccore"
-        "SubmissionSamples"
-        "XmlDocSync"
-        "ios-api-docs"
-        "mac-api-docs"
-        "xamarin-analysis"
     )
 
     foreach ($repo in $repositories) {

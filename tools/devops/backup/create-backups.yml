@@ -8,31 +8,6 @@ resources:
     name: xamarin/maccore
     ref: refs/heads/main
     endpoint: xamarin
-  - repository: SubmissionSamples
-    type: github
-    name: xamarin/SubmissionSamples
-    ref: refs/heads/main
-    endpoint: xamarin
-  - repository: XmlDocSync
-    type: github
-    name: xamarin/XmlDocSync
-    ref: refs/heads/main
-    endpoint: xamarin
-  - repository: apple-api-docs
-    type: github
-    name: xamarin/apple-api-docs
-    ref: refs/heads/main
-    endpoint: xamarin
-  - repository: mac-api-docs
-    type: github
-    name: xamarin/mac-api-docs
-    ref: refs/heads/main
-    endpoint: xamarin
-  - repository: xamarin-analysis
-    type: github
-    name: xamarin/xamarin-analysis
-    ref: refs/heads/main
-    endpoint: xamarin
 
 variables:
   - group: xamops-azdev-secrets
