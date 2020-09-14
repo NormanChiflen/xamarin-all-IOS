@@ -21,6 +21,8 @@ jobs:
 
   pool:
     name: 'VSEngDeploymentPool'
+    workspace:
+      clean: all
 
   steps:
   - checkout: self
