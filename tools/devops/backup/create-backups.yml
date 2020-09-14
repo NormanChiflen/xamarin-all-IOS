@@ -8,6 +8,31 @@ resources:
     name: xamarin/maccore
     ref: refs/heads/main
     endpoint: xamarin
+  - repository: SubmissionSamples
+    type: github
+    name: xamarin/SubmissionSamples
+    ref: refs/heads/main
+    endpoint: xamarin
+  - repository: XmlDocSync
+    type: github
+    name: xamarin/XmlDocSync
+    ref: refs/heads/main
+    endpoint: xamarin
+  - repository: ios-api-docs
+    type: github
+    name: xamarin/ios-api-docs
+    ref: refs/heads/main
+    endpoint: xamarin
+  - repository: mac-api-docs
+    type: github
+    name: xamarin/mac-api-docs
+    ref: refs/heads/main
+    endpoint: xamarin
+  - repository: xamarin-analysis
+    type: github
+    name: xamarin/xamarin-analysis
+    ref: refs/heads/main
+    endpoint: xamarin
 
 variables:
   - group: xamops-azdev-secrets
@@ -34,15 +59,10 @@ jobs:
   - powershell: |
       Get-ChildItem
       Import-Module $Env:SYSTEM_DEFAULTWORKINGDIRECTORY\xamarin-macios\tools\devops\backup\scripts\Backup.psm1
-      if (Test-Path "working-dir") {
-          Remove-Item -LiteralPath working-dir -Force -Recurse
-      }
       if (Test-Path "backups") {
           Remove-Item -LiteralPath backups -Force -Recurse
       }
-      New-Item -Name working-dir -ItemType directory
       New-Item -Name backups -ItemType directory
-      Set-Location -Path working-dir
       New-XamarinMaciosBackup
       Set-Location -Path .. 
       mv working-dir/*-bundle backups

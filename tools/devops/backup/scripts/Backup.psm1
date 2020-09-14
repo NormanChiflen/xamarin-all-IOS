@@ -54,10 +54,6 @@ function New-Backup
         [Parameter(Mandatory)]
         [String]
         $Repository,
-
-        [Parameter(Mandatory)]
-        [String]
-        $Url
     )
 
     # in order to perform a backup we have to perform the following steps:
@@ -66,8 +62,7 @@ function New-Backup
     # 3. Pull all the branhces
     # 4. Create the bundle
 
-    Write-Host "Cloning into $Url $Repository"
-    git clone $Url $Repository
+    Write-Host "Backing up $Repository"
     # should have the dir present
     Set-Location -Path $Repository
     $remoteBranches = Get-AllRemoteBranches
@@ -81,7 +76,7 @@ function New-Backup
 
     # got all the data, create the bundle
     Write-Host "All remote branches are tracked."
-    $path = [System.IO.Path]::Combine($path, "$Repository-bundle")
+    $path = [System.IO.Path]::Combine("..", "$Repository-bundle")
     Write-Host "Creating bundle backup to path $path"
 
     git bundle create $path --all
@@ -96,20 +91,18 @@ function New-Backup
 function New-XamarinMaciosBackup
 {
     $repositories=@(
-        @{repo="xamarin-macios";url="git@github.com:xamarin/xamarin-macios.git"},
-        @{repo="maccore";url="git@github.com:xamarin/maccore.git"},
-        @{repo="SubmissionSamples";url="git@github.com:xamarin/SubmissionSamples.git"},
-        @{repo="XmlDocSync";url="git@github.com:xamarin/XmlDocSync.git"},
-        @{repo="ios-api-docs";url="git@github.com:xamarin/ios-api-docs.git"},
-        @{repo="mac-api-docs";url="git@github.com:xamarin/mac-api-docs.git"},
-        @{repo="xamarin-analysis";url="git@github.com:xamarin/xamarin-analysis.git"}
+        "xamarin-macios"
+        "maccore"
+        "SubmissionSamples"
+        "XmlDocSync"
+        "ios-api-docs"
+        "mac-api-docs"
+        "xamarin-analysis"
     )
 
-    foreach ($repoInfo in $repositories) {
-        $repo=$repoInfo["repo"]
-        $url=$repoInfo["url"]
-        Write-Host "Create backup for $repo at $url"
-        New-Backup -Repository $repo -Url $url 
+    foreach ($repo in $repositories) {
+        Write-Host "Create backup for $repo"
+        New-Backup -Repository $repo
     }
 }
 
