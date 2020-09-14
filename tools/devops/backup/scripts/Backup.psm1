@@ -67,26 +67,35 @@ function New-Backup
     # 4. Create the bundle
 
     Write-Host "Cloning into $Repository $Url"
-    Start-Process -FilePath "git" -ArgumentList "clone $Url $Repository" -Wait
+    Write-Host "git clone $Url $Repository"
+    $rv = Start-Process -FilePath "git" -ArgumentList "clone $Url $Repository" -Wait
+    Write-Host "git exit code $rv"
     # should have the dir present
-    Get-ChildItem -Path .
+    Get-ChildItem
     Set-Location -Path $Repository
     $remoteBranches = Get-AllRemoteBranches
     for ( $index = 0; $index -lt $remoteBranches.Count; $index++) {
         $remote = $remoteBranches[$index]
         $local = $remote -replace "origin/",""
         Write-Host "git branch --track $local $remote"
-        Start-Process -FilePath "git" -ArgumentList "branch --track $local $remote" -Wait
+        $rv = Start-Process -FilePath "git" -ArgumentList "branch --track $local $remote" -Wait
+        Write-Host "git exit code $rv"
     }
-    Start-Process -FilePath "git" -ArgumentList "fetch --all" -Wait
-    Start-Process -FilePath "git" -ArgumentList "pull --all" -Wait
+    Write-Host "git fetch --all"
+    $rv = Start-Process -FilePath "git" -ArgumentList "fetch --all" -Wait
+    Write-Host "git exit code $rv"
+    Write-Host "git pull --all"
+    $rv = Start-Process -FilePath "git" -ArgumentList "pull --all" -Wait
+    Write-Host "git exit code $rv"
 
     # got all the data, create the bundle
     Write-Host "All remote branches are tracked."
     $path = [System.IO.Path]::Combine($path, "$Repository-bundle")
     Write-Host "Creating bundle backup to path $path"
 
-    Start-Process -FilePath "git" -ArgumentList "bundle create $path --all" -Wait
+    Write-Host "git bundle create $path --all"
+    $rv = Start-Process -FilePath "git" -ArgumentList "bundle create $path --all" -Wait
+    Write-Host "git exit code $rv"
     # get out of the repo and where we started
     Set-Location -Path ..
 }
