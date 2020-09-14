@@ -29,10 +29,10 @@ jobs:
 
   - powershell: |
       Import-Module $Env:SYSTEM_DEFAULTWORKINGDIRECTORY\xamarin-macios\tools\devops\backup\scripts\Backup.psm1
-      mkdir working-dir
-      cd working-dir
+      New-Item -Name working-dir -ItemType directory
+      Set-Location -Path working-dir
       New-XamarinMaciosBackup
-      cd ..
+      Set-Location -Path .. 
       mkdir backups
       mv working-dir/*-bundle backups
     displayName: 'Create backups'

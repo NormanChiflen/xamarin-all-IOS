@@ -70,7 +70,7 @@ function New-Backup
     Start-Process -FilePath "git" -ArgumentList "clone $Url $Repository" -Wait
     # should have the dir present
     Get-ChildItem -Path .
-    cd $Repository
+    Set-Location -Path $Repository
     $remoteBranches = Get-AllRemoteBranches
     for ( $index = 0; $index -lt $remoteBranches.Count; $index++) {
         $remote = $remoteBranches[$index]
@@ -88,7 +88,7 @@ function New-Backup
 
     Start-Process -FilePath "git" -ArgumentList "bundle create $path --all" -Wait
     # get out of the repo and where we started
-    cd ..
+    Set-Location -Path ..
 }
 
 <#
