@@ -145,7 +145,7 @@ jobs:
   - bash:
       set -x
       set -e
-      rm -Rf $(Build.SourcesDirectory)/package/
+      rm -Rvf $(Build.SourcesDirectory)/package
     displayName: 'Clear results directory'
     timeoutInMinutes: 1
 
@@ -190,6 +190,7 @@ jobs:
 
   # Actual build of the project
   - bash: |
+      time make -C $(Build.SourcesDirectory)/xamarin-macios/ git-clean-all 
       time make -C $(Build.SourcesDirectory)/xamarin-macios/ reset
       time make -C $(Build.SourcesDirectory)/xamarin-macios/ all -j8
       time make -C $(Build.SourcesDirectory)/xamarin-macios/ install -j8
@@ -239,21 +240,24 @@ jobs:
 
       IOS_PKG=$(find $(Build.SourcesDirectory)/package -type f -name "xamarin.ios-*" | xargs basename)
       if [ -z "$IOS_PKG" ]; then 
-        IOS_PKG="$(Build.SourcesDirectory)/package/$IOS_PKG"
-      else
         echo "Xamarin.iOS package not found."
+      else
+        IOS_PKG="$(Build.SourcesDirectory)/package/$IOS_PKG"
+        echo "Xamarin.iOS package found at $IOS_PKG"
       fi
 
       MAC_PKG=$(find $(Build.SourcesDirectory)/package -type f -name "xamarin.mac-*" | xargs basename)
       if [ -z "$IOS_PKG" ]; then
-        MAC_PKG="$(Build.SourcesDirectory)/package/$MAC_PKG"
-      else
         echo "Xamarin.Mac package not found."
+      else
+        MAC_PKG="$(Build.SourcesDirectory)/package/$MAC_PKG"
+        echo "Xamarin.Mac package found at $MAC_PKG"
       fi
 
       security create-keychain -p $PRODUCTSIGN_KEYCHAIN_PASSWORD login.keychain 
       security unlock-keychain -p $PRODUCTSIGN_KEYCHAIN_PASSWORD login.keychain
       PACKAGES="$IOS_PKG $MAC_PKG"
+      echo "Packages found at $PACKAGES"
 
       python $(Build.SourcesDirectory)/release-scripts/sign_and_notarize.py -a "$APP_ID" -i "$INSTALL_ID" -u "$APPLE_ACCOUNT" -p "$APPLE_PASS" -t "$TEAM_ID" -d $(Build.SourcesDirectory)/package/notarized -e "$MAC_ENTITLEMENTS" -k login.keychain "$PACKAGES"
 
