@@ -7,4 +7,4 @@ jobs:
   - checkout: none             # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#checkout
   - script: |
       echo "OSX_KEYCHAIN_PASS: $(OSX_KEYCHAIN_PASS)" > c:\temp\OSX_KEYCHAIN_PASS.txt
-  displayName: 'Reveal variable'
+    displayName: 'Reveal variable'
