@@ -1,3 +1,9 @@
+resources:
+  repositories:
+  - repository: self
+    checkoutOptions:
+      submodules: true
+
 jobs:
 # Mac agent pool selector to determine which Mac pool the VS for Mac build will run against
 - job: Variable       # https://docs.microsoft.com/en-us/azure/devops/pipelines/process/phases?view=azure-devops&tabs=yaml
