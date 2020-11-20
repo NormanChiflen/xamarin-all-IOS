@@ -233,7 +233,7 @@ steps:
     artifactName: package-internal
   continueOnError: true
 
-- bash:
+- bash: |
     set -x
     set -e
 
@@ -248,7 +248,7 @@ steps:
     artifactName: package-internal
   continueOnError: true
 
-- bash:
+- bash: |
     rm -rf ~/.config/.mono/keypairs/
 
     RC=0
@@ -283,8 +283,8 @@ steps:
   condition: succeededOrFailed()
 
 - pwsh: |
-    summaryName = "TestSummary.md"
-    summaryPath = "$Env:SYSTEM_DEFAULTWORKINGDIRECTORY/xamarin-macios/tests/TestSummary.md"
+    $summaryName = "TestSummary.md"
+    $summaryPath = "$Env:SYSTEM_DEFAULTWORKINGDIRECTORY/xamarin-macios/tests/TestSummary.md"
     Write-Host "##vso[task.addattachment type=Distributedtask.Core.Summary;name=$summaryName;]$summaryPath"
   displayName: Set TestSummary
 
