@@ -78,6 +78,7 @@ stages:
         useXamarinStorage: ${{ parameters.useXamarinStorage }}
         vsdropsPrefix: ${{ parameters.vsdropsPrefix }} 
         keyringPass: ${{ parameters.keyringPass }} 
+        devicePrefix: ${{ parameters.devicePrefix }}
 
   - job: upload_vsdrops
     displayName: 'Upload report to vsdrops'

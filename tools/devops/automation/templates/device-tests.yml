@@ -33,6 +33,10 @@ parameters:
 - name: keyringPass
   type: string
 
+- name: devicePrefix
+  type: string 
+  default: 'ios' # default context, since we started dealing with iOS devices. 
+
 steps:
 
 - checkout: self
@@ -280,7 +284,7 @@ steps:
   displayName: 'Publish Artifact: TestSummary'
   inputs:
     targetPath: 'xamarin-macios/tests/TestSummary.md'
-    artifactName: TestSummary-${{ parameters.vsdropsPrefix }}
+    artifactName: TestSummary-${{ parameters.devicePrefix }}
   continueOnError: true
   condition: succeededOrFailed()
 
@@ -290,7 +294,7 @@ steps:
     Write-Host "##vso[task.addattachment type=Distributedtask.Core.Summary;name=$summaryName;]$summaryPath"
   displayName: Set TestSummary
   env:
-    PREFIX: ${{ parameters.vsdropsPrefix }}
+    PREFIX: ${{ parameters.devicePrefix }}
 
 # Archive files for the Html Report so that the report can be easily uploaded as artifacts of the build.
 - task: ArchiveFiles@1
@@ -309,7 +313,7 @@ steps:
   displayName: 'Publish Artifact: HtmlReport'
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)/HtmlReport.zip'
-    artifactName: HtmlReport-${{ parameters.vsdropsPrefix }}
+    artifactName: HtmlReport-${{ parameters.devicePrefix }}
   continueOnError: true
   condition: succeededOrFailed()
 
