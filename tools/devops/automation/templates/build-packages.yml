@@ -309,7 +309,7 @@ steps:
     rm -f ~/Library/Caches/com.xamarin.provisionator/Provisions/*p12
     rm -f ~/Library/Caches/com.xamarin.provisionator/Provisions/*mobileprovision
     cd "$SOURCES_DIR/maccore/tools/"
-    install-qa-provisioning-profiles.sh -v 
+    ./install-qa-provisioning-profiles.sh -v 
   displayName: 'Add tests provisioning profiles'
   timeoutInMinutes: 30
   env:
