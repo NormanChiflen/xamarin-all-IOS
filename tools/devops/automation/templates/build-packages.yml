@@ -287,10 +287,6 @@ steps:
     GitHubToken: $(GitHub.Token)
     ArtifactDirectory: $(Build.SourcesDirectory)/package-internal
 
-- template: uninstall-certificates/v1.yml@templates
-  parameters:
-    HostedMacKeychainPassword: $(OSX_KEYCHAIN_PASS)
-
 # upload each of the pkgs into the pipeline artifacts
 - task: PublishPipelineArtifact@1
   displayName: 'Publish Build Artifacts'
@@ -399,3 +395,7 @@ steps:
     artifactName: HtmlReport
   continueOnError: true
   condition: and(succeededOrFailed(), eq(variables['runTests.TESTS_RAN'], 'True')) # if tests did not run, there is nothing to do
+
+- template: uninstall-certificates/v1.yml@templates
+  parameters:
+    HostedMacKeychainPassword: $(OSX_KEYCHAIN_PASS)
