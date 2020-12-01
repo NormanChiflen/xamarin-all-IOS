@@ -321,7 +321,6 @@ steps:
     set -e
 
     make -C $(Build.SourcesDirectory)/xamarin-macios/tests package-tests
-    ls -la $(Build.SourcesDirectory)/xamarin-macios
   displayName: 'Package Xamarin.mac tests'
   condition: and(succeeded(), eq(variables['configuration.RunMacTests'], 'True'))
   continueOnError: true # not a terrible blocking issue
@@ -329,7 +328,7 @@ steps:
 - task: PublishPipelineArtifact@1
   displayName: 'Publish Xamarin.Mac tests'
   inputs:
-    targetPath: $(Build.SourcesDirectory)/xamarin-macios/mac-test-package.7z
+    targetPath: $(Build.SourcesDirectory)/xamarin-macios/tests/mac-test-package/mac-test-package.7z
     artifactName: package-internal
   condition: and(succeeded(), eq(variables['configuration.RunMacTests'], 'True'))
   continueOnError: true
