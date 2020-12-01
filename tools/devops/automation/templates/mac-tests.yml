@@ -1,52 +1,122 @@
-parameters:
-# name of the pool that contains the iOS devices
-- name: macPool
-  type: string
+steps:
 
-- name: stageName 
-  type: string
+- checkout: self
+- checkout: maccore
+  persistCredentials: true  # hugely important, else there are some scripts that check a single file from maccore that will fail
 
-stages:
-- stage:
-  displayName: ${{ parameters.stageName }}
-  dependsOn:
-  - build_packages
-  # we need to have the pkgs built and the device sets to be ran, that is decided via the labels or type of build during the build_packages stage
-  condition: and(succeeded(), eq (stageDependencies.build_packages.build.outputs['configuration.RunMacTests'], 'True')) 
+- bash: |
+    security set-key-partition-list -S apple-tool:,apple: -s -k $KEYCHAIN_PASS login.keychain
+  env:
+    KEYCHAIN_PASS: ${{ parameters.keyringPass }}
+  displayName: 'Remove security UI-prompt (http://stackoverflow.com/a/40039594/183422)'
+  condition: succeededOrFailed() # we do not care about the previous process cleanup
+  continueOnError: true
 
-  jobs:
-  - job: run_tests
-    displayName: 'Mac OS X tests'
-    timeoutInMinutes: 1000
-    workspace:
-      clean: all
+- bash: cd $(System.DefaultWorkingDirectory)/xamarin-macios/ && git clean -xdf
+  displayName: 'Clean workspace'
 
-    pool:
-      name: ${{ parameters.macPool }}
-      demands: 
-      - Agent.OS -equals Darwin
-    
-    steps:
-      - checkout: self          # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#checkout
-        clean: true             # Executes: git clean -ffdx && git reset --hard HEAD
-        submodules: recursive
 
-      - bash: echo "Hello Tests"
-        displayName: 'So many job'
+# download the packages that have been created, install them, later download the zip files that contain the already built
+# tests and execute them.
 
-  - job: upload_vsdrops
-    displayName: 'Upload results to vsdrops'
-    dependsOn: run_tests
-    timeoutInMinutes: 1000
-    workspace:
-      clean: all
+- pwsh : |
+    gci env: | format-table -autosize -wrap
+  displayName: 'Dump Environment'
 
-    pool:
-      name: VSEng-Xamarin-Win-XMA
-      demands: 
-      - Agent.OS -equals Windows_NT
-    
-    steps:
-      - checkout: self          # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#checkout
-        clean: true             # Executes: git clean -ffdx && git reset --hard HEAD
-        submodules: recursive
+# Uses the powershell cmdlet to remove known directories that are not needed and use space.
+# we might hit issue https://github.com/PowerShell/PowerShell/issues/9246, so we always do exit 0
+- pwsh: |
+    Import-Module $Env:SYSTEM_DEFAULTWORKINGDIRECTORY/xamarin-macios/tools/devops/automation/scripts/System.psm1
+    Clear-HD 
+    exit 0  
+  displayName: 'Disk cleanup'
+  timeoutInMinutes: 5
+  continueOnError: true
+
+# Use a cmdlet to check if the space available in the devices root system is larger than 50 gb. If there is not
+# enough space available it:
+# 1. Set the status of the build to error. It is not a failure since no tests have been ran.
+# 2. Set a comment stating the same as what was sent to the status.
+# 3. Cancel the pipeline and do not execute any of the following steps.
+- pwsh: |
+    cd $Env:SYSTEM_DEFAULTWORKINGDIRECTORY/xamarin-macios/tools/devops/automation/scripts/
+    Import-Module ./System.psm1
+    Import-Module ./VSTS.psm1
+    Import-Module ./GitHub.psm1
+    if ( -not (Test-HDFreeSpace -Size 50)) {
+      Set-GitHubStatus -Status "error" -Description "Not enough free space in the host." -Context "$Env:CONTEXT"
+      New-GitHubComment -Header "Tests failed catastrophically on $Env:CONTEXT" -Emoji ":fire:" -Description "Not enough free space in the host."
+      Stop-Pipeline
+    } else {
+      Set-GitHubStatus -Status "pending" -Description "Device tests on VSTS have been started." -Context "$Env:CONTEXT"
+    }
+  env:
+    BUILD_REVISION: $(Build.SourceVersion)
+    CONTEXT: ${{ parameters.statusContext }}
+    GITHUB_TOKEN: $(GitHub.Token)
+    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+  displayName: 'Check HD Free Space'
+  timeoutInMinutes: 5
+  condition: succeededOrFailed() # we do not care about the previous step
+
+- task: xamops.azdevex.provisionator-task.provisionator@2
+  displayName: 'Provision Brew components'
+  inputs:
+    provisioning_script: $(Build.SourcesDirectory)/xamarin-macios/tools/devops/provision-brew-packages.csx
+    provisioning_extra_args: '-vvvv'
+  timeoutInMinutes: 30
+  enabled: false
+
+# download the artifacts.json, which will use to find the URI of the built pkg to later be installed by provisionator
+- task: DownloadPipelineArtifact@2
+  displayName: Download artifacts.json
+  inputs:
+    patterns: '**/*.json'
+    allowFailedBuilds: true
+    path: $(Build.SourcesDirectory)/artifacts
+
+- pwsh: |
+    Dir $(Build.SourcesDirectory)/artifacts
+    $json = Get-Content '$(Build.SourcesDirectory)/artifacts/pkg-info/artifacts.json' | Out-String | ConvertFrom-Json
+    foreach ($i in $json) {
+      if ($i.tag -like "xamarin-mac*" -and -not ($i.url -like "*notarized*")) {
+        $url = $i.url
+        Write-Host "##vso[task.setvariable variable=XM_PACKAGE;]$url"
+        break
+      }
+    }
+  displayName: 'Set Mac pkgs url'
+  timeoutInMinutes: 5
+
+- bash: |
+    echo "Pkg uri is $XM_PACKAGE"
+    make -C $(System.DefaultWorkingDirectory)/xamarin-macios/tools/devops/ mac-tests-provisioning.csx
+  displayName: 'Generate Provisionator csx file'
+
+# Executed ONLY if we want to clear the provisionator cache.
+- bash: rm -rf "$TOOLS_DIR/provisionator"
+  env:
+    TOOLS_DIR: $(Agent.ToolsDirectory)
+  displayName: 'Nuke Provisionator Tool Cache'
+  condition: ${{ parameters.clearProvisionatorCache }}
+
+# Use the provisionator to install the test dependencies. Those have been generated in the 'Generate Provisionator csx file' step.
+- task: xamops.azdevex.provisionator-task.provisionator@1
+  displayName: 'Provision dependencies'
+  inputs:
+    provisioning_script: $(System.DefaultWorkingDirectory)/xamarin-macios/tools/devops/mac-tests-provisioning.csx
+    provisioning_extra_args: '-vvvv'
+  timeoutInMinutes: 250
+
+- task: DownloadPipelineArtifact@2
+  displayName: Download Mac tests
+  inputs:
+    patterns: '**/mac-test-package.7z'
+    allowFailedBuilds: true
+    path: $(Build.SourcesDirectory)/artifacts
+
+- bash: |
+    ls -la $(Build.SourcesDirectory)/artifacts
+    rm -rf $(Build.SourcesDirectory)/artifacts/mac-test-package
+    7z x $(Build.SourcesDirectory)/artifacts/mac-test-package.7z
+  displayName: Expand tests.

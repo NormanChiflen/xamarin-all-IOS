@@ -152,12 +152,12 @@ stages:
     vsdropsPrefix: ${{ variables.vsdropsPrefix }}
     keyringPass: $(xma-password)
 
-- template: templates/mac-tests.yml
+- template: templates/mac-tests-stage.yml
   parameters:
     stageName: 'Mac Mojave Tests'
     macPool: 'Hosted Mac Internal Mojave'
 
-- template: templates/mac-tests.yml
+- template: templates/mac-tests-stage.yml
   parameters:
     stageName: 'Mac High Sierra Tests'
     macPool: 'Hosted Mac Internal'
