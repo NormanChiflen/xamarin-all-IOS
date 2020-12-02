@@ -6,6 +6,13 @@ parameters:
 - name: stageName 
   type: string
 
+- name: statusContext
+  type: string 
+  default: '10.16' # default context, since we started dealing with iOS devices. 
+
+- name: keyringPass
+  type: string
+
 stages:
 - stage:
   displayName: ${{ parameters.stageName }}
@@ -29,6 +36,9 @@ stages:
 
     steps:
     - template: mac-tests.yml
+      parameters:
+        statusContext: ${{ parameters.statusContext }}
+        keyringPass: ${{ parameters.keyringPass }} 
 
   - job: upload_vsdrops
     displayName: 'Upload results to vsdrops'

@@ -1,3 +1,17 @@
+parameters:
+
+- name: statusContext
+  type: string 
+  default: '10.16' # default context, since we started dealing with iOS devices. 
+
+- name: clearProvisionatorCache
+  type: boolean
+  default: false
+
+# can depend on the pool, which is annoying, but we should keep it in mind
+- name: keyringPass
+  type: string
+
 steps:
 
 - checkout: self
@@ -118,5 +132,31 @@ steps:
 - bash: |
     ls -la $(Build.SourcesDirectory)/artifacts
     rm -rf $(Build.SourcesDirectory)/artifacts/mac-test-package
-    7z x $(Build.SourcesDirectory)/artifacts/mac-test-package.7z
+    7z x $(Build.SourcesDirectory)/artifacts/mac-test-package.7z -o $(Build.SourcesDirectory)/artifacts/mac-test-package
   displayName: Expand tests.
+
+- pwsh: |
+    Import-Module $Env:SYSTEM_DEFAULTWORKINGDIRECTORY\xamarin-macios\tools\devops\automation\scripts\GitHub.psm1 
+
+    [System.Collections.Generic.List[string]]$failures = @()
+
+    $macTest = @("dontlink", "apitest", "introspection", "linksdk", "linkall", "xammac_tests")
+    foreach ($t in $macTest) {
+      make -C $(Build.SourcesDirectory)/artifacts/mac-test-package/tests exec-mac-$t MONO_DEBUG=no-gdb-backtrace"
+      if ($LastExitCode -eq 0) {
+        Write-Host "$t succeeded"
+      } else {
+        Write-Host ("$t failed with error: $LastExitCode"
+        $failures.Add($t)
+      }
+    }
+    if ($failures.Count -ne 0) {
+      # post status and comment in the build
+      $failedTestsStr = [string]::Join(",",$failures)
+      Set-GitHubStatus -Status "error" -Description "Xamarin.Mac tests on $Env:CONTEXT failed ($failedTestsStr)." -Context "$Env:CONTEXT"
+    } else {
+      Set-GitHubStatus -Status "success" -Description "Xamarin.Mac tests on $Env:CONTEXT passed." -Context "$Env:CONTEXT"
+    }
+  displayName: 'Run tests'
+  env:
+    CONTEXT: ${{ parameters.statusContext }}
