@@ -132,7 +132,7 @@ steps:
 - bash: |
     ls -la $(Build.SourcesDirectory)/artifacts
     rm -rf $(Build.SourcesDirectory)/artifacts/mac-test-package
-    7z x $(Build.SourcesDirectory)/artifacts/mac-test-package.7z -o $(Build.SourcesDirectory)/artifacts/mac-test-package
+    7z x $(Build.SourcesDirectory)/artifacts/mac-test-package.7z -o$(Build.SourcesDirectory)/artifacts/mac-test-package
   displayName: Expand tests.
 
 - pwsh: |
