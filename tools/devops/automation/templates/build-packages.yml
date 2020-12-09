@@ -333,6 +333,9 @@ steps:
   continueOnError: true
 
 - bash: |
+    set -x
+    set -e
+
     make -j8 -C $(Build.SourcesDirectory)/xamarin-macios/tools/apidiff jenkins-api-diff
 
     # remove some files that do not need to be uploaded
@@ -350,6 +353,15 @@ steps:
     artifactName: apidiff-stable
   condition: and(succeeded(), eq(variables['configuration.SkipPublicJenkins'], 'False'))
   continueOnError: true
+
+- bash:
+    set -x
+    set -e
+    $(Build.SourcesDirectory)/xamarin-macios/jenkins/compare.sh
+  displayName: 'API & Generator comparison'
+  condition: and(succeeded(), eq(variables['configuration.SkipPublicJenkins'], 'False'))
+  env:
+    ghprbPullId: $(PRChangeID) # comes from the config job since we had to get the data, if empty, is not a PR
 
 - bash: |
     echo "##vso[task.setvariable variable=TESTS_RAN;isOutput=true]True"
