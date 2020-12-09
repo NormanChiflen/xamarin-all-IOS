@@ -143,7 +143,8 @@ steps:
     $macTest = @("dontlink", "apitest", "introspection", "linksdk", "linkall", "xammac_tests")
     foreach ($t in $macTest) {
       make -C $(Build.SourcesDirectory)/artifacts/mac-test-package/tests exec-mac-$t MONO_DEBUG=no-gdb-backtrace"
-      if ($LastExitCode -eq 0) {
+      # $? will return true if the last execution was correct
+      if ($?) {
         Write-Host "$t succeeded"
       } else {
         Write-Host ("$t failed with error: $LastExitCode"
