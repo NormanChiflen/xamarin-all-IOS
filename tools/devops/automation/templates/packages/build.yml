@@ -195,6 +195,8 @@ steps:
 
 # Actual build of the project
 - bash: |
+    set -x
+    set -e
     time make -C $(Build.SourcesDirectory)/xamarin-macios/ reset
     time make -C $(Build.SourcesDirectory)/xamarin-macios/ all -j8
     time make -C $(Build.SourcesDirectory)/xamarin-macios/ install -j8
@@ -233,23 +235,11 @@ steps:
   timeoutInMinutes: 180
 
 # build nugets
-- bash: |
-    set -x
-    set -e
-
-    mkdir -p $(Build.SourcesDirectory)/package/
-    DOTNET_NUPKG_DIR=$(make -C $(Build.SourcesDirectory)/xamarin-macios/tools/devops print-abspath-variable VARIABLE=DOTNET_NUPKG_DIR | grep "^DOTNET_NUPKG_DIR=" | sed -e 's/^DOTNET_NUPKG_DIR=//')
-    rm -f $(Build.SourcesDirectory)/package/*.nupkg
-    cp -c "$DOTNET_NUPKG_DIR"/*.nupkg $(Build.SourcesDirectory)/package
-
-    DOTNET_PKG_DIR=$(make -C $(Build.SourcesDirectory)/xamarin-macios/tools/devops print-abspath-variable VARIABLE=DOTNET_PKG_DIR | grep "^DOTNET_PKG_DIR=" | sed -e 's/^DOTNET_PKG_DIR=//')
-    make -C $(Build.SourcesDirectory)/xamarin-macios/dotnet package -j
-    cp -c "$DOTNET_PKG_DIR"/*.pkg $(Build.SourcesDirectory)/package/
+- bash:  $(Build.SourcesDirectory)/xamarin-macios/jenkins/build-nugets.sh
   displayName: 'Build Nugets'
   condition: and(succeeded(), eq(variables['configuration.BuildNugets'], 'True'))
+  continueOnError: true # should not stop the build since is not official just yet.
   timeoutInMinutes: 180
-  env:
-    BRANCH_NAME: $(Build.SourceBranchName) # expected by make since it used to be set by jenkins
 
 - bash:  $(Build.SourcesDirectory)/xamarin-macios/tools/devops/automation/productsign.sh
   env:
@@ -394,7 +384,7 @@ steps:
   displayName: 'Publish Artifact: TestSummary'
   inputs:
     targetPath: 'xamarin-macios/tests/TestSummary.md'
-    artifactName: TestSummary
+    artifactName: TestSummary-sim
   continueOnError: true
   condition: and(succeededOrFailed(), eq(variables['runTests.TESTS_RAN'], 'True')) # if tests did not run, there is nothing to do
 
@@ -422,6 +412,6 @@ steps:
   displayName: 'Publish Artifact: HtmlReport'
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)/HtmlReport.zip'
-    artifactName: HtmlReport
+    artifactName: HtmlReport-sim
   continueOnError: true
   condition: and(succeededOrFailed(), eq(variables['runTests.TESTS_RAN'], 'True')) # if tests did not run, there is nothing to do
