@@ -348,10 +348,19 @@ steps:
     set -x
     set -e
     $(Build.SourcesDirectory)/xamarin-macios/jenkins/compare.sh
+    ls -la $(Build.SourcesDirectory)/xamarin-macios/jenkins-results/apicomparison/
   displayName: 'API & Generator comparison'
   condition: and(succeeded(), eq(variables['configuration.SkipPublicJenkins'], 'False'))
   env:
     ghprbPullId: $(PRChangeID) # comes from the config job since we had to get the data, if empty, is not a PR
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish API & Generator comparison'
+  inputs:
+    targetPath: $(Build.SourcesDirectory)/xamarin-macios/jenkins-results/apicomparison/
+    artifactName: apidiff-comparison
+  condition: and(succeeded(), eq(variables['configuration.SkipPublicJenkins'], 'False'))
+  continueOnError: true
 
 - bash: |
     echo "##vso[task.setvariable variable=TESTS_RAN;isOutput=true]True"
