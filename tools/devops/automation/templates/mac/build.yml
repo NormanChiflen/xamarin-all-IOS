@@ -146,7 +146,7 @@ steps:
       if ($LastExitCode -eq 0) {
         Write-Host "$t succeeded"
       } else {
-        Write-Host ("$t failed with error $LastExitCode"
+        Write-Host "$t failed with error $LastExitCode"
         $failures.Add($t)
       }
     }
