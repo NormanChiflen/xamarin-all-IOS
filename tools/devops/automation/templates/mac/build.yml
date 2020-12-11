@@ -122,14 +122,6 @@ steps:
   displayName: 'Nuke Provisionator Tool Cache'
   condition: ${{ parameters.clearProvisionatorCache }}
 
-# Use the provisionator to install the test dependencies. Those have been generated in the 'Generate Provisionator csx file' step.
-- task: xamops.azdevex.provisionator-task.provisionator@1
-  displayName: 'Provision dependencies'
-  inputs:
-    provisioning_script: $(System.DefaultWorkingDirectory)/xamarin-macios/tools/devops/mac-tests-provisioning.csx
-    provisioning_extra_args: '-vvvv'
-  timeoutInMinutes: 250
-
 - task: DownloadPipelineArtifact@2
   displayName: Download Mac tests
   inputs:
@@ -140,8 +132,13 @@ steps:
 - bash: |
     ls -la $(Build.SourcesDirectory)/artifacts
     rm -rf $(Build.SourcesDirectory)/artifacts/mac-test-package
-    7z x $(Build.SourcesDirectory)/artifacts/package-mac-tests/mac-test-package.7z -o$(Build.SourcesDirectory)/artifacts/mac-test-package
+    7z x $(Build.SourcesDirectory)/artifacts/package-mac-tests/mac-test-package.7z -o$(Build.SourcesDirectory)/artifacts/mac-test-package -bb1
+    ls -la $(Build.SourcesDirectory)/artifacts/mac-test-package
   displayName: Expand tests.
+
+- bash: |
+    $(Build.SourcesDirectory)/artifacts/mac-test-package/tests/test-dependencies.sh
+  displayName: Install dependencies.
 
 - pwsh: |
     Import-Module $Env:SYSTEM_DEFAULTWORKINGDIRECTORY\xamarin-macios\tools\devops\automation\scripts\GitHub.psm1 
@@ -168,3 +165,6 @@ steps:
   displayName: 'Run tests'
   env:
     CONTEXT: ${{ parameters.statusContext }}
+    BUILD_REVISION: $(Build.SourceVersion)
+    GITHUB_TOKEN: $(GitHub.Token)
+    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
