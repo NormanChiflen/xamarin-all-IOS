@@ -203,6 +203,49 @@ steps:
   displayName: 'Build'
   timeoutInMinutes: 180
 
+- bash: |
+    set -x
+    set -e
+
+    make -j8 -C $(Build.SourcesDirectory)/xamarin-macios/tools/apidiff jenkins-api-diff
+
+    # remove some files that do not need to be uploaded
+    cd $(Build.SourcesDirectory)/xamarin-macios/tools/apidiff/
+    rm -Rf *.exe *.pdb *.stamp *.zip *.sh ./references ./temp
+  displayName: 'API diff (from stable)'
+  condition: and(succeeded(), eq(variables['configuration.SkipPublicJenkins'], 'False'))
+  env:
+    BUILD_REVISION: 'jenkins'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish API diff (from stable)'
+  inputs:
+    targetPath: $(Build.SourcesDirectory)/xamarin-macios/tools/apidiff
+    artifactName: apidiff-stable
+  condition: and(succeeded(), eq(variables['configuration.SkipPublicJenkins'], 'False'))
+  continueOnError: true
+
+- bash: |
+    set -x
+    set -e
+    $(Build.SourcesDirectory)/xamarin-macios/jenkins/compare.sh
+  displayName: 'API & Generator comparison'
+  condition: and(succeeded(), eq(variables['configuration.SkipPublicJenkins'], 'False'))
+  env:
+    ghprbPullId: $(PRChangeID) # comes from the config job since we had to get the data, if empty, is not a PR
+
+- pwsh: |
+    Get-ChildItem -Recurse $(Build.SourcesDirectory)
+  displayName: Debug
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish API & Generator comparison'
+  inputs:
+    targetPath: $(Build.SourcesDirectory)/xamarin-macios/jenkins-results/apicomparison/
+    artifactName: apidiff-comparison
+  condition: and(succeeded(), eq(variables['configuration.SkipPublicJenkins'], 'False'))
+  continueOnError: true
+
 # build not signed .pkgs for the SDK
 - bash: |
     set -x
@@ -320,49 +363,6 @@ steps:
     targetPath: $(Build.SourcesDirectory)/xamarin-macios/tests/*.7z
     artifactName: package-internal
   condition: and(succeeded(), eq(variables['configuration.RunMacTests'], 'True'))
-  continueOnError: true
-
-- bash: |
-    set -x
-    set -e
-
-    make -j8 -C $(Build.SourcesDirectory)/xamarin-macios/tools/apidiff jenkins-api-diff
-
-    # remove some files that do not need to be uploaded
-    cd $(Build.SourcesDirectory)/xamarin-macios/tools/apidiff/
-    rm -Rf *.exe *.pdb *.stamp *.zip *.sh ./references ./temp
-  displayName: 'API diff (from stable)'
-  condition: and(succeeded(), eq(variables['configuration.SkipPublicJenkins'], 'False'))
-  env:
-    BUILD_REVISION: 'jenkins'
-
-- task: PublishPipelineArtifact@1
-  displayName: 'Publish API diff (from stable)'
-  inputs:
-    targetPath: $(Build.SourcesDirectory)/xamarin-macios/tools/apidiff
-    artifactName: apidiff-stable
-  condition: and(succeeded(), eq(variables['configuration.SkipPublicJenkins'], 'False'))
-  continueOnError: true
-
-- bash: |
-    set -x
-    set -e
-    $(Build.SourcesDirectory)/xamarin-macios/jenkins/compare.sh
-  displayName: 'API & Generator comparison'
-  condition: and(succeeded(), eq(variables['configuration.SkipPublicJenkins'], 'False'))
-  env:
-    ghprbPullId: $(PRChangeID) # comes from the config job since we had to get the data, if empty, is not a PR
-
-- pwsh: |
-    Get-ChildItem -Recurse $(Build.SourcesDirectory)
-  displayName: Debug
-
-- task: PublishPipelineArtifact@1
-  displayName: 'Publish API & Generator comparison'
-  inputs:
-    targetPath: $(Build.SourcesDirectory)/xamarin-macios/jenkins-results/apicomparison/
-    artifactName: apidiff-comparison
-  condition: and(succeeded(), eq(variables['configuration.SkipPublicJenkins'], 'False'))
   continueOnError: true
 
 - bash: |
