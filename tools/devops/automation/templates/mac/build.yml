@@ -129,6 +129,7 @@ steps:
   displayName: Expand tests.
 
 - bash: |
+    ls -Rla $(Build.SourcesDirectory)/artifacts
     $(Build.SourcesDirectory)/artifacts/mac-test-package/test-dependencies.sh
   displayName: Install dependencies.
 
