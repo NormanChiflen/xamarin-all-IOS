@@ -129,17 +129,22 @@ steps:
   displayName: Expand tests.
 
 - bash: |
-    $(Build.SourcesDirectory)/artifacts/mac-test-package/tests/test-dependencies.sh
+    $(Build.SourcesDirectory)/artifacts/mac-test-package/test-dependencies.sh
   displayName: Install dependencies.
 
 - pwsh: |
     Import-Module $Env:SYSTEM_DEFAULTWORKINGDIRECTORY\xamarin-macios\tools\devops\automation\scripts\GitHub.psm1 
 
+    Write-Host "Found tests"
+    Get-ChildItem -Recurse "$(Build.SourcesDirectory)/artifacts/mac-test-package/tests"
+
     [System.Collections.Generic.List[string]]$failures = @()
 
     $macTest = @("dontlink", "apitest", "introspection", "linksdk", "linkall", "xammac_tests")
     foreach ($t in $macTest) {
-      make -C "$(Build.SourcesDirectory)/artifacts/mac-test-package/tests exec-mac-$t MONO_DEBUG=no-gdb-backtrace"
+      $testName = "exec-mac-$t"
+      Write-Host "Execution test $testName"
+      make -C "$(Build.SourcesDirectory)/artifacts/mac-test-package/tests $testName MONO_DEBUG=no-gdb-backtrace"
       if ($LastExitCode -eq 0) {
         Write-Host "$t succeeded"
       } else {
