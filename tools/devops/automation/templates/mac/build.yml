@@ -144,7 +144,8 @@ steps:
     Import-Module $Env:SYSTEM_DEFAULTWORKINGDIRECTORY\xamarin-macios\tools\devops\automation\scripts\GitHub.psm1 
 
     Write-Host "Found tests"
-    Get-ChildItem -Recurse "$(Build.SourcesDirectory)/artifacts/mac-test-package/tests"
+    $testsPath = "(Build.SourcesDirectory)/artifacts/mac-test-package/tests"
+    Get-ChildItem -Recurse $testsPath
 
     [System.Collections.Generic.List[string]]$failures = @()
 
@@ -152,7 +153,7 @@ steps:
     foreach ($t in $macTest) {
       $testName = "exec-mac-$t"
       Write-Host "Execution test $testName"
-      make -C "$(Build.SourcesDirectory)/artifacts/mac-test-package/tests $testName MONO_DEBUG=no-gdb-backtrace"
+      make -d -C $testsPath $testName
       if ($LastExitCode -eq 0) {
         Write-Host "$t succeeded"
       } else {
@@ -173,3 +174,4 @@ steps:
     BUILD_REVISION: $(Build.SourceVersion)
     GITHUB_TOKEN: $(GitHub.Token)
     SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    MONO_DEBUG: no-gdb-backtrace
