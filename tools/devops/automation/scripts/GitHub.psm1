@@ -290,14 +290,11 @@ function Test-JobSuccess {
     .PARAMETER Context
         The context to be used to link the status and the device test run in the GitHub status API.
 
-    .PARAMETER XamarinStoragePath
-        The xamarin-storage path to which the html report was uploaded.
-
     .PARAMETER TestSummaryPath
         The path to the generated test summary.
 
     .EXAMPLE
-        New-GitHubSummaryComment -Context "$Env:CONTEXT" -XamarinStoragePath "$Env:XAMARIN_STORAGE_PATH" -TestSummaryPath "$Env:SYSTEM_DEFAULTWORKINGDIRECTORY/xamarin/xamarin-macios/tests/TestSummary.md"
+        New-GitHubSummaryComment -Context "$Env:CONTEXT" -TestSummaryPath "$Env:SYSTEM_DEFAULTWORKINGDIRECTORY/xamarin/xamarin-macios/tests/TestSummary.md"
     .NOTES
         This cmdlet depends on the following environment variables. If one or more of the variables is missing an
         InvalidOperationException will be thrown:
@@ -317,11 +314,7 @@ function New-GitHubSummaryComment {
 
         [Parameter(Mandatory)]
         [String]
-        $TestSummaryPath,
-
-        [String]
-        [AllowEmptyString()]
-        $XamarinStoragePath
+        $TestSummaryPath
     )
 
     $envVars = @{
@@ -346,12 +339,6 @@ function New-GitHubSummaryComment {
     $headerSb = [System.Text.StringBuilder]::new()
     $headerSb.AppendLine(); # new line to start the list
     $headerSb.AppendLine("* [Azure DevOps]($vstsTargetUrl)")
-    if ([string]::IsNullOrEmpty($XamarinStoragePath)) { # if we do have the storage path but we failed. first part of the -and check string is not null or empty, second check presence of the env var
-        $headerSb.AppendLine("* :warning: xamarin-storage could not be reached :warning:")
-    } else {
-        $xamarinStorageUrl = Get-XamarinStorageIndexUrl -Path $XamarinStoragePath
-        $headerSb.AppendLine("* [Html Report]($xamarinStorageUrl)")
-    }
     if ($Env:VSDROPS_INDEX) {
         # we did generate an index with the files in vsdrops
         $headerSb.AppendLine("* [Html Report (VSDrops)]($Env:VSDROPS_INDEX)")
@@ -411,6 +398,135 @@ function Get-GitHubPRInfo {
     return $request
 }
 
+<#
+    .SYNOPSIS
+        Class used to represent a single file to be added to a gist.
+#>
+class GistFile
+{
+    [ValidateNotNullOrEmpty ()]
+    [string]
+    $Name
+    [ValidateNotNullOrEmpty ()]
+    [string]
+    $Path
+    [ValidateNotNullOrEmpty ()]
+    [string]
+    $Type
+
+    GistFile ($Name, $Path, $Type) {
+        # validate that the path does exist
+        if (Test-Path -Path $Path -PathType Leaf) {
+            $this.Path = $Path
+        } else {
+            throw [System.InvalidOperationException]::new("Path could not be found: $Path")
+        }
+        $this.Name = $Name
+        $this.Type = $Type
+     }
+
+    [hashtable] ConvertToHashTable () {
+        # ugly workaround to get decent new lines
+        $file= [System.Text.StringBuilder]::new()
+        foreach ($line in Get-Content -Path $this.Path)
+        {
+            $file.AppendLine($line)
+        }
+
+        return @{
+            content = $file.ToString()
+            filename = $this.Name;
+            language = $this.Type;
+        }
+    }
+}
+
+<# 
+    .SYNOPSIS
+        Creates a new gist that will contain the given collection of files and returns the urlobject defintion, this
+        is usefull when the 'using' statement generates problems.
+#>
+function New-GistObjectDefinition {
+    param (
+
+        [ValidateNotNullOrEmpty ()]
+        [string]
+        $Name, 
+
+        [ValidateNotNullOrEmpty ()]
+        [string]
+        $Path,
+
+        [ValidateNotNullOrEmpty ()]
+        [string]
+        $Type
+    )
+    return [GistFile]::new($Name, $Path, $Type)
+}
+
+<# 
+    .SYNOPSIS
+        Creates a new gist that will contain the given collection of files and returns the url
+#>
+function New-GistWithFiles {
+    param (
+
+        [ValidateNotNullOrEmpty ()]
+        [string]
+        $Description, 
+
+        [Parameter(Mandatory)]
+        [GistFile[]]
+        $Files,
+
+        [switch]
+        $IsPublic=$false # default to false, better save than sorry
+    )
+
+    $envVars = @{
+        "GITHUB_TOKEN" = $Env:GITHUB_TOKEN;
+    }
+
+    foreach ($key in $envVars.Keys) {
+        if (-not($envVars[$key])) {
+            Write-Debug "Environment variable missing: $key"
+            throw [System.InvalidOperationException]::new("Environment variable missing: $key")
+        }
+    }
+
+    # create the hashtable that will contain all the information of all types
+    $payload = @{
+        description = $Description;
+        files = @{}; # each file is the name of the file + the hashtable of the data to be used
+    }
+
+    # switchs are converted to {\"IsPresent\"=>true} in json :/ and the ternary operator might not be in all machines
+    if ($IsPublic) {
+        $payload["public"] = $true
+    } else {
+        $payload["public"] = $false
+    }
+
+    foreach ($g in $Files) {
+        # add the file using its name + the hashtable that is used by GitHub
+        $payload["files"].Add($g.Name, $g.ConvertToHashTable())
+    }
+
+    $url = "https://api.github.com/gists"
+    $payloadJson = $payload | ConvertTo-Json
+    Write-Host "Url is $url"
+    Write-Host "Payload is $payloadJson"
+
+    $headers = @{
+        Accept = "application/vnd.github.v3+json";
+        Authorization = ("token {0}" -f $Env:GITHUB_TOKEN);
+    } 
+
+    $request = Invoke-RestMethod -Uri $url -Headers $headers -Method "POST" -Body $payloadJson -ContentType 'application/json'
+    Write-Host $request
+    return $request.html_url
+}
+
 # module exports, any other functions are private and should not be used outside the module.
 Export-ModuleMember -Function Set-GitHubStatus
 Export-ModuleMember -Function New-GitHubComment
@@ -418,3 +534,5 @@ Export-ModuleMember -Function New-GitHubCommentFromFile
 Export-ModuleMember -Function New-GitHubSummaryComment 
 Export-ModuleMember -Function Test-JobSuccess 
 Export-ModuleMember -Function Get-GitHubPRInfo
+Export-ModuleMember -Function New-GistWithFiles 
+Export-ModuleMember -Function New-GistObjectDefinition 

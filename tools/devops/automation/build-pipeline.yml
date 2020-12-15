@@ -5,6 +5,15 @@
 # https://jenkins.internalx.com/view/Xamarin.MaciOS/job/macios/job/main/
 # https://jenkins.internalx.com/view/Xamarin.MaciOS/job/macios/configure
 #
+parameters:
+- name: runTests
+  type: boolean
+  default: true
+
+- name: runDeviceTests
+  type: boolean
+  default: true
+
 resources:
   repositories:
   - repository: self
@@ -79,6 +88,9 @@ stages:
   dependsOn: []
   jobs:
     - template: templates/packages/stage.yml
+      parameters:
+        runTests: ${{ parameters.runTests }}
+        runDeviceTests: ${{ parameters.runDeviceTests }}
 
   # ideally we would use a matrix here, like:
   #  - job: device_tests
