@@ -91,6 +91,7 @@ stages:
       parameters:
         runTests: ${{ parameters.runTests }}
         runDeviceTests: ${{ parameters.runDeviceTests }}
+        keyringPass: $(xma-password)
 
   # ideally we would use a matrix here, like:
   #  - job: device_tests
