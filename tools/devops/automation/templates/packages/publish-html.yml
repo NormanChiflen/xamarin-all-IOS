@@ -14,8 +14,16 @@
 
 parameters:
 
+- name: statusContext
+  type: string 
+  default: 'iOS Device Tests' # default context, since we started dealing with iOS devices. 
+
 - name: vsdropsPrefix
   type: string
+
+- name: devicePrefix
+  type: string 
+  default: 'ios' # default context, since we started dealing with iOS devices. 
 
 steps:
 
