@@ -40,4 +40,4 @@ steps:
     Write-Host "##vso[task.setvariable variable=ARTIFACTS_JSON_PATH]$Env:SYSTEM_DEFAULTWORKINGDIRECTORY\artifacts\pkg-info\artifacts.json'"
 
   displayName: Pusblish artifacts.json paths
-  name: artifacts-info
+  name: artifacts_info
