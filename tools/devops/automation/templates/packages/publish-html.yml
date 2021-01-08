@@ -70,8 +70,7 @@ steps:
       Write-Host "##vso[task.setvariable variable=$envVarName]$url"
     }
   displayName: 'Create API from stable diff gists'
-  enabled: false
-  timeoutInMinutes: 1
+  timeoutInMinutes: 10
   env:
     GITHUB_TOKEN: $(GitHub.Token)
 
