@@ -111,6 +111,7 @@ jobs:
   steps:
   - template: ../common/upload-vsdrops.yml
     parameters:
+      runTests: ${{ parameters.runTests }}
       devicePrefix: sim
 
 - job: upload_vsts_tests
@@ -126,6 +127,7 @@ jobs:
   steps:
   - template: ../common/upload-vsts-tests.yml
     parameters:
+      runTests: ${{ parameters.runTests }}
       devicePrefix: sim
 
 - job: publish_html
@@ -151,6 +153,7 @@ jobs:
   steps:
   - template: publish-html.yml
     parameters:
+      runTests: ${{ parameters.runTests }}
       statusContext: "Build"
       vsdropsPrefix: ${{ parameters.vsdropsPrefix }} 
       devicePrefix: sim

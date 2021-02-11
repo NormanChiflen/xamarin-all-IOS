@@ -14,6 +14,10 @@
 
 parameters:
 
+- name: runTests
+  type: boolean
+  default: true
+
 - name: statusContext
   type: string 
   default: 'iOS Device Tests' # default context, since we started dealing with iOS devices. 
@@ -104,6 +108,22 @@ steps:
     TESTS_JOBSTATUS: $(TESTS_JOBSTATUS) # set by the runTests step
     TESTS_SUMMARY: $(TEST_SUMMARY_PATH)
     ACCESSTOKEN: $(System.AccessToken)
-  displayName: 'Add summaries'
+  displayName: 'Add test summaries'
+  enabled: ${{ parameters.runTests }} # no tests, do write a diff comment
+  condition: always()
+  timeoutInMinutes: 1
+
+- powershell: |
+    Write-Host "Something smart to report."
+  env:
+    BUILD_REVISION: $(Build.SourceVersion)
+    CONTEXT: ${{ parameters.statusContext }}
+    DEVICE_PREFIX: ${{ parameters.devicePrefix }}
+    GITHUB_TOKEN: $(GitHub.Token)
+    TESTS_JOBSTATUS: $(TESTS_JOBSTATUS) # set by the runTests step
+    TESTS_SUMMARY: $(TEST_SUMMARY_PATH)
+    ACCESSTOKEN: $(System.AccessToken)
+  displayName: 'Add package summaries'
+  enabled: ${{ not(parameters.runTests) }} # run just when we did not run the tests
   condition: always()
   timeoutInMinutes: 1
