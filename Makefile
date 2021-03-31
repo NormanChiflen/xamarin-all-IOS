@@ -1,5 +1,9 @@
 TOP=.
 SUBDIRS=builds runtime fsharp src msbuild tools
+
+# This is used by other scripts to know the name of the main repository
+export MACIOS_REPO_NAME=xamarin-macios
+
 include $(TOP)/Make.config
 include $(TOP)/mk/versions.mk
 
