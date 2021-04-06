@@ -14,9 +14,6 @@ parameters:
   type: boolean
   default: true
 
-- name: isPR
-  type: boolean
-  default: eq(variables['Build.SourceBranchName'], 'merge')
 # We are doing some black magic. We have several templates that 
 # are executed with different parameters. 
 #
@@ -197,7 +194,7 @@ stages:
         gitHubToken: ${{ variables['GitHub.Token'] }}
         xqaCertPass: $(xqa--certificates--password)
 
-- ${{ if eq(parameters.isPR, 'False') }}:
+- ${{ if or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual')) }}:
   - ${{ each config in parameters.deviceTestsConfigurations }}:
     - template: templates/devices/stage.yml
       parameters:
