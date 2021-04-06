@@ -196,7 +196,7 @@ stages:
         gitHubToken: ${{ variables['GitHub.Token'] }}
         xqaCertPass: $(xqa--certificates--password)
 
-- ${{ if eq(variables['isPR'], 'False') }}:
+- ${{ if eq('False', 'False') }}:
   - ${{ each config in parameters.deviceTestsConfigurations }}:
     - template: templates/devices/stage.yml
       parameters:
