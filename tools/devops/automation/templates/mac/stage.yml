@@ -32,10 +32,7 @@ stages:
       clean: all
 
     pool:
-      vmImage: ${{ parameters.macPool }}
-      demands: 
-      - Agent.OS -equals Darwin
-      - Agent.OSVersion -equals ${{ parameters.osVersion }}
+      name: ${{ parameters.macPool }}
 
     steps:
     - template: build.yml
