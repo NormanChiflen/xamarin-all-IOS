@@ -234,7 +234,7 @@ stages:
           macPool: ${{ config['macPool'] }}
           osVersion: ${{ config['osVersion'] }}
           statusContext: ${{ config['statusContext'] }}
-          keyringPass: $(xma-password)
+          keyringPass: $(OSX_KEYCHAIN_PASS)
 
 - ${{ if eq(parameters.runSamples, true) }}:
   # TODO: Not the real step
