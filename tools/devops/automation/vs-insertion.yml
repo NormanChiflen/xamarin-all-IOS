@@ -1,5 +1,10 @@
 # YAML pipeline use to create the vs insertion to create the vs insertionn
 
+parameters:
+- name: enableDotnet
+  type: boolean
+  default: true
+
 trigger: none
 pr: none
 
@@ -21,15 +26,4 @@ variables:
   value: true
 
 
-jobs:
-- job: publish_results
-  displayName: Create VS Insertion
-  pool:
-    vmImage: windows-latest
-  workspace:
-    clean: all
-
-
-  steps:
-  - checkout: self
-    persistCredentials: true
+- template: templates/release/vs-insertion-prep.yml
