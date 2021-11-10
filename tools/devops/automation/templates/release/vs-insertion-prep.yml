@@ -67,15 +67,3 @@ stages:
         packagesToPush: $(Build.SourcesDirectory)/vs-msi-nugets/*.nupkg
         nuGetFeedType: external
         publishFeedCredentials: dnceng-dotnet6
-
-# Check - "xamarin-macios (VS Insertion Wait For Approval)"
-# Check - "xamarin-macios (VS Insertion Create VS Drop and Open PR)"
-- template: vs-insertion/stage/v1.yml@templates
-  parameters:
-    dependsOn: prepare_release
-    symbolArtifactName: nuget-signed
-    symbolConversionFilters: '*mlaunch.app*'
-    pushToShippingFeed: true
-    nupkgArtifactName: nuget-signed
-    msiNupkgArtifactName: vs-msi-nugets
-    condition: eq(variables.IsPRBuild, 'False')
