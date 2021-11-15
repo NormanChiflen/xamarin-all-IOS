@@ -26,6 +26,10 @@ parameters:
   type: boolean
   default: true
 
+- name: generateApiDiff
+  type: boolean
+  default: true
+
 # We are doing some black magic. We have several templates that 
 # are executed with different parameters. 
 #
@@ -249,6 +253,7 @@ stages:
         gitHubToken: ${{ variables['GitHub.Token'] }}
         xqaCertPass: $(xqa--certificates--password)
         enableDotnet: ${{ parameters.enableDotnet }}
+        generateApiDiff: ${{ parameters.generateApiDiff }}
 
 # .NET 6 Release Prep and VS Insertion Stages, only execute them when the build comes from an official branch and is not a schedule build from OneLoc
 - ${{ if and(ne(variables['Build.Reason'], 'Schedule'), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'))) }}:
