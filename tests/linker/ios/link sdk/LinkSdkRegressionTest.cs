@@ -932,7 +932,8 @@ namespace LinkSdk {
 			var isMac1015 = TestRuntime.CheckSystemVersion (ApplePlatform.MacOSX, 10, 15);
 			path = TestFolder (Environment.SpecialFolder.Favorites, supported: isMac1015, exists: isMac1015);
 #elif __MACCATALYST__
-			path = TestFolder (Environment.SpecialFolder.Favorites, exists: true);
+			var isMac1015 = TestRuntime.CheckSystemVersion (ApplePlatform.MacCatalyst, 14, 0);
+			path = TestFolder (Environment.SpecialFolder.Favorites, supported: isMac1015, exists: isMac1015);
 #else
 			path = TestFolder (Environment.SpecialFolder.Favorites, exists: false);
 #endif
@@ -954,7 +955,7 @@ namespace LinkSdk {
 
 #if __TVOS__
 			path = TestFolder (Environment.SpecialFolder.Fonts, exists: null, supported: true);
-#elif __MACOS__
+#elif __MACOS__ || __MACCATALYST__
 			path = TestFolder (Environment.SpecialFolder.Fonts, supported: isMac1015, exists: isMac1015);
 #else
 			path = TestFolder (Environment.SpecialFolder.Fonts, exists: myExists);
