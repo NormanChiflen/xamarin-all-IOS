@@ -151,6 +151,7 @@ jobs:
     parameters:
       devicePrefix: sim
       runTests: ${{ parameters.runTests }}
+      generateApiDiff: ${{ parameters.generateApiDiff }}
 
 - job: upload_vsts_tests
   displayName: 'Upload xml to vsts'
@@ -197,4 +198,5 @@ jobs:
       statusContext: "Build"
       runTests: ${{ parameters.runTests }}
       vsdropsPrefix: ${{ parameters.vsdropsPrefix }}
+      generateApiDiff: ${{ parameters.generateApiDiff }}
       devicePrefix: sim

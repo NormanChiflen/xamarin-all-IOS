@@ -10,6 +10,10 @@ parameters:
   type: boolean
   default: true
 
+- name: generateApiDiff
+  type: boolean
+  default: true
+
 steps:
 
 - checkout: self
@@ -33,23 +37,24 @@ steps:
       usePat: true 
 
 # Upload the API diff to vsdrops to be able to locate it
-- task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
-  displayName: 'Publish API diff to Artifact Services Drop'
-  inputs:
-    dropServiceURI: 'https://devdiv.artifacts.visualstudio.com/DefaultCollection'
-    dropMetadataContainerName: 'DropMetadata-APIDiff'
-    buildNumber: 'xamarin-macios/device-tests/$(Build.BuildNumber)/$(Build.BuildId)/APIDiff'
-    sourcePath: $(STABLE_APIDDIFF_PATH)
-    detailedLog: true
-    usePat: true
+- ${{ if eq(parameters.generateApiDiff, true) }}:
+  - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
+    displayName: 'Publish API diff to Artifact Services Drop'
+    inputs:
+      dropServiceURI: 'https://devdiv.artifacts.visualstudio.com/DefaultCollection'
+      dropMetadataContainerName: 'DropMetadata-APIDiff'
+      buildNumber: 'xamarin-macios/device-tests/$(Build.BuildNumber)/$(Build.BuildId)/APIDiff'
+      sourcePath: $(STABLE_APIDDIFF_PATH)
+      detailedLog: true
+      usePat: true
 
-- task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
-  displayName: 'Publish API & Generator comparisonn to Artifact Services Drop'
-  condition: and(succeeded(), contains(variables.API_GENERATOR_DIFF_BUILT, 'True'))
-  inputs:
-    dropServiceURI: 'https://devdiv.artifacts.visualstudio.com/DefaultCollection'
-    dropMetadataContainerName: 'DropMetadata-APIGeneratorDiff'
-    buildNumber: 'xamarin-macios/device-tests/$(Build.BuildNumber)/$(Build.BuildId)/APIGeneratorDiff'
-    sourcePath: $(STABLE_APID_GENERATOR_DIFF_PATH)
-    detailedLog: true
-    usePat: true
+  - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0
+    displayName: 'Publish API & Generator comparisonn to Artifact Services Drop'
+    condition: and(succeeded(), contains(variables.API_GENERATOR_DIFF_BUILT, 'True'))
+    inputs:
+      dropServiceURI: 'https://devdiv.artifacts.visualstudio.com/DefaultCollection'
+      dropMetadataContainerName: 'DropMetadata-APIGeneratorDiff'
+      buildNumber: 'xamarin-macios/device-tests/$(Build.BuildNumber)/$(Build.BuildId)/APIGeneratorDiff'
+      sourcePath: $(STABLE_APID_GENERATOR_DIFF_PATH)
+      detailedLog: true
+      usePat: true
