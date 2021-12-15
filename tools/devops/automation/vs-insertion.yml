@@ -1,5 +1,4 @@
 # YAML pipeline use to create the vs insertion to create the vs insertionn
-
 trigger: none
 pr: none
 
@@ -27,11 +26,11 @@ resources:
     ref: refs/heads/sign-and-notarized
     endpoint: xamarin
 
-  # we need all stages to be completed, else we do not have the test results, this trigger is just for CI, because we have
-  # but because we have device issues, and it needs to be gree to trigger, we will deal with it later
+  # required by the deployment to decide when to be triggered
   pipelines:
   - pipeline: macios
     source: xamarin-macios
+    trigger: true  # run always, to be decided.
 
 variables:
 - group: xamops-azdev-secrets
@@ -44,11 +43,13 @@ variables:
 - name: system.debug
   value: true
 
+
 # this pipeline is triggered when we want to do a release and uses a release trigger, this means that it does not have conditions (a human accepted it)
 # or dependencies (the release pipeline was triggered accordingly.
-#
+
 jobs:
-- job: create_insert_drop
+
+- deployment: create_insert_drop
   displayName: Create VS Drop and Open PR
   timeoutInMinutes: 120
   variables:
@@ -57,12 +58,17 @@ jobs:
   - name: skipNugetSecurityAnalysis
     value: true
   - group: Xamarin-Secrets
+
   pool: VSEng-ReleasePool-1ES
-  steps:
-  - template: vs-insertion/jobs/create_insert_drop/v1.yml@templates
-    parameters:
-      symbolArtifactName: nuget-signed
-      symbolConversionFilters: '*mlaunch.app*'
-      pushToShippingFeed: true
-      nupkgArtifactName: nuget-signed
-      msiNupkgArtifactName: vs-msi-nugets
+
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - template: vs-insertion/jobs/create_insert_drop/v1.yml@templates
+          parameters:
+            symbolArtifactName: nuget-signed
+            symbolConversionFilters: '*mlaunch.app*'
+            pushToShippingFeed: true
+            nupkgArtifactName: nuget-signed
+            msiNupkgArtifactName: vs-msi-nugets
