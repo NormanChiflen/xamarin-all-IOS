@@ -167,3 +167,10 @@ steps:
     provisioning_script: $(System.DefaultWorkingDirectory)/xamarin-macios/tools/devops/device-tests-provisioning.csx
     provisioning_extra_args: '-vvvv'
   timeoutInMinutes: 250
+
+- template: ./run-tests.yml
+  parameters:
+    statusContext: ${{ parameters.statusContext }}
+    testsLabels: ${{ parameters.testsLabels }}
+    vsdropsPrefix: ${{ parameters.vsdropsPrefix }}
+    devicePrefix: ${{ parameters.devicePrefix }}
