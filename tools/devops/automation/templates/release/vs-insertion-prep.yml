@@ -12,6 +12,7 @@ stages:
   displayName: Prepare Release
   dependsOn: ${{ parameters.dependsOn }}
   condition: and(or(eq(dependencies.${{ parameters.dependsOn }}.result, 'Succeeded'), eq(dependencies.${{ parameters.dependsOn }}.result, 'SucceededWithIssues')), eq(variables.IsPRBuild, 'False'), eq(${{ parameters.enableDotnet }}, true))
+
   jobs:
   # Check - "xamarin-macios (Prepare Release Sign NuGets)"
   - template: sign-artifacts/jobs/v2.yml@templates
@@ -67,6 +68,96 @@ stages:
         packagesToPush: $(Build.SourcesDirectory)/vs-msi-nugets/*.nupkg
         nuGetFeedType: external
         publishFeedCredentials: dnceng-dotnet6
+
+    - powershell : |
+        $build_path= $(Build.SourceBranchName)/$(Build.SourceVersion)/$(Build.BuildId)
+        $packagePrefix = "https://bosstoragemirror.blob.core.windows.net/wrench/$build_path/vs-insertion"
+        $files =  Get-ChildItem -Path "$(Build.SourcesDirectory)\package" -File -Force -Name 
+        $manifestFile = "$(Build.SourcesDirectory)\package\vs-insertion-manifest"
+        foreach ($f in $files) {
+          Add-Content -Path "$manifestFile" -Value "$packagePrefix/$f"
+        }
+        Add-Content -Path "$manifestFile" -Value "$packagePrefix/$artifacts.json"
+        Add-Content -Path "$manifestFile" -Value "$packagePrefix/manifest"
+      env:
+        VIRTUAL_PATH: $(Build.SourceBranchName)/$(Build.SourceVersion)/$(Build.BuildId)
+      displayName: "Build manifest"
+
+    # Important needed for the next steps
+    - template: generate-workspace-info.yml@templates
+      parameters:
+        GitHubToken: $(GitHub.Token)
+        ArtifactDirectory: $(Build.SourcesDirectory)/package
+
+    - task: AzureFileCopy@3
+      displayName: 'Publish package to Azure'
+      name: upload
+      inputs:
+        SourcePath: $(Build.SourcesDirectory)/package
+        azureSubscription:  'Azure Releng (7b4817ae-218f-464a-bab1-a9df2d99e1e5)'
+        Destination: AzureBlob
+        storage: bosstoragemirror
+        ContainerName: wrench
+        BlobPrefix: $(Build.SourceBranchName)/$(Build.SourceVersion)/$(Build.BuildId)/vs-insertion # ideally, we would use a variable for this
+        outputStorageUri: Parameters.outputStorageUri
+        outputStorageContainerSasToken: PackageSasToken
+
+    - task: AzureFileCopy@3
+      displayName: 'Publish manifest to Azure'
+      inputs:
+        SourcePath: $(Build.SourcesDirectory)/package/vs-insertion-manifest
+        azureSubscription:  'Azure Releng (7b4817ae-218f-464a-bab1-a9df2d99e1e5)'
+        Destination: AzureBlob
+        storage: bosstoragemirror
+        ContainerName: wrench
+        BlobPrefix: jenkins/$(Build.SourceBranchName)/$(Build.SourceVersion)
+        outputStorageUri: Parameters.outputStorageUri
+        outputStorageContainerSasToken: PackageSasToken
+
+    - task: AzureFileCopy@3
+      displayName: 'Publish manifest to Azure as latest'
+      inputs:
+        SourcePath: $(Build.SourcesDirectory)/package/vs-insertion-manifest
+        azureSubscription:  'Azure Releng (7b4817ae-218f-464a-bab1-a9df2d99e1e5)'
+        Destination: AzureBlob
+        storage: bosstoragemirror
+        ContainerName: wrench
+        BlobPrefix: jenkins/$(Build.SourceBranchName)/vs-insertion-latest
+        outputStorageUri: Parameters.outputStorageUri
+        outputStorageContainerSasToken: PackageSasToken
+
+    - task: AzureFileCopy@3
+      displayName: 'Publish manifest to Azure per commit'
+      inputs:
+        SourcePath: $(Build.SourcesDirectory)/package/vs-insertion-manifest
+        azureSubscription:  'Azure Releng (7b4817ae-218f-464a-bab1-a9df2d99e1e5)'
+        Destination: AzureBlob
+        storage: bosstoragemirror
+        ContainerName: wrench
+        BlobPrefix: jenkins/$(Build.SourceVersion)
+        outputStorageUri: Parameters.outputStorageUri
+        outputStorageContainerSasToken: PackageSasToken
+
+    - powershell: |
+        $execPath="$Env:BUILD_SOURCESDIRECTORY\Xamarin.Build.Tasks\tools\BuildTasks\build-tasks.exe"
+
+        if (-not (Test-Path $execPath -PathType Leaf)) {
+            Write-Host "Build task not found at $execPath!"
+        }
+
+        $maciosPath="$Env:BUILD_SOURCESDIRECTORY"
+
+        Write-Host "Exect path is $execPath" 
+        Write-Host "Macios path is $maciosPath"
+        Write-Host "$Env:VIRTUAL_PATH"
+        Write-Host "Artifacts url wrench/$Env:VIRTUAL_PATH/vs-insertion"
+
+        Invoke-Expression "$execPath artifacts -s `"$maciosPath`" -a bosstoragemirror -c $Env:STORAGE_PASS -u `"wrench/$Env:VIRTUAL_PATH/vs-insertion`" -d `"$(Build.SourcesDirectory)\package`" -o `"$(Build.SourcesDirectory)\package`""
+      env:
+        VIRTUAL_PATH: $(Build.SourceBranchName)/$(Build.SourceVersion)/$(Build.BuildId)
+        GITHUB_AUTH_TOKEN: $(GitHub.Token)
+        STORAGE_PASS: $(auth-xamarin-bosstoragemirror-account-key)
+      displayName: 'Generate artifacts.json'
 
 # Check - "xamarin-macios (VS Insertion Wait For Approval)"
 # Check - "xamarin-macios (VS Insertion Create VS Drop and Open PR)"
