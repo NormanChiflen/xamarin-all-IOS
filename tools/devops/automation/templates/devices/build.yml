@@ -154,3 +154,8 @@ steps:
     testsLabels: ${{ parameters.testsLabels }}
     vsdropsPrefix: ${{ parameters.vsdropsPrefix }}
     devicePrefix: ${{ parameters.devicePrefix }}
+
+# clean the bot after we use it
+- template: ../common/teardown.yml
+  parameters:
+    keyringPass: ${{ parameters.keyringPass }}
