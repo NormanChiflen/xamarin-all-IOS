@@ -37,7 +37,7 @@ stages:
     variables:
       skipNugetSecurityAnalysis: true
     pool:
-      vmImage: macOS-10.15
+      vmImage: windows-latest
     steps:
     - task: DownloadPipelineArtifact@2
       inputs:
