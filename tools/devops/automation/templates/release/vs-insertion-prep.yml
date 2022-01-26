@@ -152,7 +152,7 @@ stages:
         Write-Host "$Env:VIRTUAL_PATH"
         Write-Host "Artifacts url wrench/$Env:VIRTUAL_PATH/vs-insertion"
 
-        Invoke-Expression "$execPath artifacts -s `"$maciosPath`" -a bosstoragemirror -c $Env:STORAGE_PASS -u `"wrench/$Env:VIRTUAL_PATH/vs-insertion`" -d `"$(Build.SourcesDirectory)\package`" -o `"$(Build.SourcesDirectory)\package`""
+        Invoke-Expression "$execPath artifacts -s `"$maciosPath`" -a bosstoragemirror -c $Env:STORAGE_PASS -u `"wrench/$Env:VIRTUAL_PATH/vs-insertion`" -d `"$(Build.SourcesDirectory)\package`" -o `"$(Build.SourcesDirectory)\package`"" -github-context vs-insertion-artifacts
       env:
         VIRTUAL_PATH: $(Build.SourceBranchName)/$(Build.SourceVersion)/$(Build.BuildId)
         GITHUB_AUTH_TOKEN: $(GitHub.Token)
