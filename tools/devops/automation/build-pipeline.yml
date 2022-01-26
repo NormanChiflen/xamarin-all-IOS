@@ -141,6 +141,12 @@ resources:
   - repository: templates
     type: github
     name: xamarin/yaml-templates
+    ref: refs/heads/dev/pjc/drop-vars-file
+    endpoint: xamarin
+
+  - repository: sdk-insertions
+    type: github
+    name: xamarin/sdk-insertions
     ref: refs/heads/main
     endpoint: xamarin
 
