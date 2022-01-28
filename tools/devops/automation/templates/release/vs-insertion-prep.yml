@@ -45,7 +45,6 @@ stages:
         downloadPath: $(Build.SourcesDirectory)/package
         patterns: |
           *.nupkg
-      continueOnError: true # HACK
 
     - task: NuGetCommand@2
       displayName: Publish Nugets to dotnet6
@@ -54,6 +53,7 @@ stages:
         packagesToPush: $(Build.SourcesDirectory)/package/*.nupkg
         nuGetFeedType: external
         publishFeedCredentials: dnceng-dotnet6
+      continueOnError: true # HACK
 
     - task: DownloadPipelineArtifact@2
       inputs:
