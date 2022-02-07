@@ -291,7 +291,7 @@ stages:
 - ${{ if eq(parameters.runDeviceTests, true) }}:
   - ${{ if and(ne(variables['Build.Reason'], 'Schedule'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual'))) }}:
     - ${{ each config in parameters.deviceTestsConfigurations }}:
-      - template: templates/devices/stage.yml
+      - template: templates/tests/stage.yml
         parameters:
           devicePrefix: ${{ config['devicePrefix'] }} 
           execute: ${{ config['execute'] }} 
@@ -331,7 +331,7 @@ stages:
 # This means we are going to get the translations AND the iOS 32b on those builds.
 #
 - ${{ if eq(variables['Build.Reason'], 'Schedule') }}: 
-  - template: templates/devices/stage.yml
+  - template: templates/tests/stage.yml
     parameters:
       devicePrefix: 'iOS32b'
       execute: 'runDevice32b'
