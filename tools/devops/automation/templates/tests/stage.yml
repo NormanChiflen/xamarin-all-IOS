@@ -45,9 +45,6 @@ parameters:
 - name: keyringPass
   type: string
 
-- name: execute
-  type: string
-
 - name: devicePrefix
   type: string
   default: 'ios' # default context, since we started dealing with iOS devices.

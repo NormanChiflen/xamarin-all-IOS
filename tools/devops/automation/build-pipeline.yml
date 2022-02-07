@@ -70,6 +70,22 @@ parameters:
 # the following parameters, define an array of dictionaries with the
 # data required by the templates. Do you want a new stage with 
 # device tests, no more copy paste, just add the new config.
+#
+- name: simTestsConfigurations
+  displayName: Simulator test configurations to run
+  type: object
+  default: [
+    {
+      devicePrefix: 'iOS simulator tests',
+      stageName: 'ios64b_simulator',
+      displayName: 'iOS Simulator Tests',
+      iOSDevicePool: '', # TODO empty because we want to use the one used by the agent pool selector
+      useXamarinStorage: False,
+      testsLabels: '', # TODO same as calling jenkins, we need to use diff one in ci an 
+      statusContext: 'VSTS: simulator tests iOS',
+      iOSDeviceDemand: [] # we do no need extra capabilities
+    }
+  ]
 
 - name: deviceTestsConfigurations
   displayName: Device test configurations to run
@@ -77,7 +93,6 @@ parameters:
   default: [
     {
       devicePrefix: 'iOS64',
-      execute: 'runDevice64b',
       stageName: 'ios64b_device',
       displayName: 'iOS64 Device Tests',
       iOSDevicePool: 'VSEng-Xamarin-Mac-Devices',
@@ -90,7 +105,6 @@ parameters:
     },
     {
       devicePrefix: 'tvos',
-      execute: 'runDeviceTv',
       stageName: 'tvos_device',
       displayName: 'tvOS Device Tests',
       iOSDevicePool: 'VSEng-Xamarin-Mac-Devices',
@@ -287,14 +301,32 @@ stages:
 - ${{ if and(ne(variables['Build.Reason'], 'Schedule'), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'), eq(parameters.forceInsertion, true))) }}:
   - template: templates/release/vs-insertion-prep.yml
 
-# Test stages
+# Test stages#
+
+# always run simulator tests
+- ${{ each config in parameters.simTestsConfigurations }}:
+  - template: templates/tests/stage.yml
+    parameters:
+      devicePrefix: ${{ config['devicePrefix'] }} 
+      stageName: ${{ config['stageName'] }} 
+      displayName: ${{ config['displayName'] }} 
+      iOSDevicePool: $(CIBuildPool) # hardcoded has to be fixed
+      useXamarinStorage: ${{ config['useXamarinStorage'] }} 
+      testsLabels: '' # hardcoded has to be fixed, run all the things, we can split later
+      statusContext: ${{ config['statusContext'] }} 
+      iOSDeviceDemand: ${{ config['iOSDeviceDemand'] }} 
+      vsdropsPrefix: ${{ variables.vsdropsPrefix }}
+      keyringPass: $(pass--lab--mac--builder--keychain)
+      gitHubToken: ${{ variables['GitHub.Token'] }}
+      xqaCertPass: $(xqa--certificates--password)
+
+# devices are optinal and will only be ran when we set them OR in CI
 - ${{ if eq(parameters.runDeviceTests, true) }}:
   - ${{ if and(ne(variables['Build.Reason'], 'Schedule'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual'))) }}:
     - ${{ each config in parameters.deviceTestsConfigurations }}:
       - template: templates/tests/stage.yml
         parameters:
           devicePrefix: ${{ config['devicePrefix'] }} 
-          execute: ${{ config['execute'] }} 
           stageName: ${{ config['stageName'] }} 
           displayName: ${{ config['displayName'] }} 
           iOSDevicePool: ${{ config['iOSDevicePool'] }} 
@@ -334,7 +366,6 @@ stages:
   - template: templates/tests/stage.yml
     parameters:
       devicePrefix: 'iOS32b'
-      execute: 'runDevice32b'
       stageName: 'ios32b_device'
       displayName: 'iOS32b Device Tests'
       iOSDevicePool: 'VSEng-Xamarin-QA'
