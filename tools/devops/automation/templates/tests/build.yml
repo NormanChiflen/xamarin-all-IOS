@@ -43,6 +43,10 @@ parameters:
 - name: xqaCertPass
   type: string
 
+- name: makeTarget
+  type: string
+  default: 'vsts-device-tests' # target to be usde to run the tests
+
 steps:
 
 - checkout: self
@@ -154,6 +158,7 @@ steps:
     testsLabels: ${{ parameters.testsLabels }}
     vsdropsPrefix: ${{ parameters.vsdropsPrefix }}
     devicePrefix: ${{ parameters.devicePrefix }}
+    makeTarget: ${{ parameters.makeTarget }}
 
 # clean the bot after we use it
 - template: ../common/teardown.yml

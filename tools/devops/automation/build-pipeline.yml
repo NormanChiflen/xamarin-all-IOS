@@ -83,6 +83,7 @@ parameters:
       useXamarinStorage: False,
       testsLabels: '--label=run-all-tests,skip-device-tests', # TODO same as calling jenkins, we need to use diff one in ci an 
       statusContext: 'VSTS: simulator tests iOS',
+      makeTarget: 'jenkins',
       iOSDeviceDemand: [] # we do no need extra capabilities
     }
   ]
@@ -99,6 +100,7 @@ parameters:
       useXamarinStorage: False,
       testsLabels: '--label=run-ios-64-tests,run-non-monotouch-tests,run-monotouch-tests,run-mscorlib-tests',
       statusContext: 'VSTS: device tests iOS',
+      makeTarget: 'vsts-device-tests',
       iOSDeviceDemand: [
         'ios',
       ]
@@ -111,6 +113,7 @@ parameters:
       useXamarinStorage: False,
       testsLabels: '--label=run-tvos-tests,run-non-monotouch-tests,run-monotouch-tests,run-mscorlib-tests',
       statusContext: 'VSTS: device tests tvOS',
+      makeTarget: 'vsts-device-tests',
       iOSDeviceDemand: [
         'tvos',
       ]
@@ -315,6 +318,7 @@ stages:
       testsLabels: '' # hardcoded has to be fixed, run all the things, we can split later
       statusContext: ${{ config['statusContext'] }} 
       iOSDeviceDemand: ${{ config['iOSDeviceDemand'] }} 
+      makeTarget: ${{ config['makeTarget'] }} 
       vsdropsPrefix: ${{ variables.vsdropsPrefix }}
       keyringPass: $(pass--lab--mac--builder--keychain)
       gitHubToken: ${{ variables['GitHub.Token'] }}
@@ -334,6 +338,7 @@ stages:
           testsLabels: ${{ config['testsLabels'] }} 
           statusContext: ${{ config['statusContext'] }} 
           iOSDeviceDemand: ${{ config['iOSDeviceDemand'] }} 
+          makeTarget: ${{ config['makeTarget'] }} 
           vsdropsPrefix: ${{ variables.vsdropsPrefix }}
           keyringPass: $(pass-XamarinQA-bot-login) 
           gitHubToken: ${{ variables['GitHub.Token'] }}

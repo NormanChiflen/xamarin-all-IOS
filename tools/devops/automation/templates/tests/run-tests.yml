@@ -18,6 +18,10 @@ parameters:
   type: string
   default: 'ios' # default context, since we started dealing with iOS devices.
 
+- name: makeTarget
+  type: string
+  default: 'vsts-device-tests' # target to be usde to run the tests
+
 steps:
 
 # remove any old processes that might have been left behind.
@@ -87,7 +91,7 @@ steps:
     make -C builds downloads -j || true
     make -C builds .stamp-mono-ios-sdk-destdir -j || true
     EC=0
-    MONO_ENV_OPTIONS=--trace=E:all make -C tests vsts-device-tests || RC=$?
+    MONO_ENV_OPTIONS=--trace=E:all make -C tests ${{ parameters.makeTarget }} || RC=$?
     if [ $RC -eq 0 ]; then
       echo "##vso[task.setvariable variable=TESTS_JOBSTATUS;isOutput=true]Succeeded"
     else

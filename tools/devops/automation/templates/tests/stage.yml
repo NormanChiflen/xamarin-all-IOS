@@ -55,6 +55,10 @@ parameters:
 - name: xqaCertPass
   type: string
 
+- name: makeTarget
+  type: string
+  default: 'vsts-device-tests' # target to be usde to run the tests
+
 stages:
 - stage: ${{ parameters.stageName }}
   displayName: ${{ parameters.displayName }}
@@ -80,6 +84,7 @@ stages:
         vsdropsPrefix: ${{ parameters.vsdropsPrefix }}
         keyringPass: ${{ parameters.keyringPass }}
         devicePrefix: ${{ parameters.devicePrefix }}
+        makeTarget: ${{ parameters.makeTarget }}
         gitHubToken: ${{ parameters.gitHubToken }}
         xqaCertPass: ${{ parameters.xqaCertPass }}
 
