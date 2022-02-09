@@ -81,7 +81,7 @@ parameters:
       displayName: 'Simulator Tests',
       iOSDevicePool: '', # TODO empty because we want to use the one used by the agent pool selector
       useXamarinStorage: False,
-      testsLabels: '', # TODO same as calling jenkins, we need to use diff one in ci an 
+      testsLabels: '--label=run-all-tests,skip-device-tests', # TODO same as calling jenkins, we need to use diff one in ci an 
       statusContext: 'VSTS: simulator tests iOS',
       iOSDeviceDemand: [] # we do no need extra capabilities
     }
