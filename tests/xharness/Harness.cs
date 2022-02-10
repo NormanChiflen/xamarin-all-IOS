@@ -197,9 +197,13 @@ namespace Xharness {
 			INCLUDE_MAC = config.ContainsKey ("INCLUDE_MAC") && !string.IsNullOrEmpty (config ["INCLUDE_MAC"]);
 			MAC_DESTDIR = config ["MAC_DESTDIR"];
 
-			IOS_DESTDIR = config ["IOS_DESTDIR"];
-			MONO_IOS_SDK_DESTDIR = config ["MONO_IOS_SDK_DESTDIR"];
-			MONO_MAC_SDK_DESTDIR = config ["MONO_MAC_SDK_DESTDIR"];
+			// the following dirs work as follows, we always want to use the env value over root, that way developers
+			// can test the current build, but if the env var is not present, we default to the system, which is what bots or 
+			// people without the source will need
+			IOS_DESTDIR = config.ContainsKey("IOS_DESTDIR") ? config ["IOS_DESTDIR"] : "/";
+			MONO_IOS_SDK_DESTDIR = config.ContainsKey("MONO_IOS_SDK_DESTDIR") ? config ["MONO_IOS_SDK_DESTDIR"] : "/";
+			MONO_MAC_SDK_DESTDIR = config.ContainsKey("MONO_MAC_SDK_DESTDIR") ? config ["MONO_MAC_SDK_DESTDIR"] : "/";
+
 			ENABLE_XAMARIN = config.ContainsKey ("ENABLE_XAMARIN") && !string.IsNullOrEmpty (config ["ENABLE_XAMARIN"]);
 			ENABLE_DOTNET = config.ContainsKey ("ENABLE_DOTNET") && !string.IsNullOrEmpty (config ["ENABLE_DOTNET"]);
 
