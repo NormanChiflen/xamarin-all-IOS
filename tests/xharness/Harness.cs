@@ -197,9 +197,27 @@ namespace Xharness {
 			INCLUDE_MAC = config.ContainsKey ("INCLUDE_MAC") && !string.IsNullOrEmpty (config ["INCLUDE_MAC"]);
 			MAC_DESTDIR = config ["MAC_DESTDIR"];
 
+			// the following setups differ if we are running the tests on a developer machine or on a bot, the idea is as folllows:
+			// 1. Try to use the env vars settings.
+			// 2. Check if the settings are correct and we can find the paths
+			// 3. If paths are not present, fall back to use the root dir and use the system frameworks.
+			// 
+			// With the above, we allow developers to run the tests after a build AND if the build is not present, we use the system
+			// setup.
 			IOS_DESTDIR = config ["IOS_DESTDIR"];
+			if (string.IsNullOrEmpty (IOS_DESTDIR ) || !Directory.Exists (IOS_DESTDIR)) {
+				IOS_DESTDIR  = "/";
+			}
+
 			MONO_IOS_SDK_DESTDIR = config ["MONO_IOS_SDK_DESTDIR"];
+			if (string.IsNullOrEmpty (IOS_DESTDIR ) || !Directory.Exists (IOS_DESTDIR)) {
+				MONO_IOS_SDK_DESTDIR = "/";
+			}
 			MONO_MAC_SDK_DESTDIR = config ["MONO_MAC_SDK_DESTDIR"];
+			if (string.IsNullOrEmpty (IOS_DESTDIR ) || !Directory.Exists (IOS_DESTDIR)) {
+				MONO_MAC_SDK_DESTDIR = "/";
+			}
+
 			ENABLE_XAMARIN = config.ContainsKey ("ENABLE_XAMARIN") && !string.IsNullOrEmpty (config ["ENABLE_XAMARIN"]);
 			ENABLE_DOTNET = config.ContainsKey ("ENABLE_DOTNET") && !string.IsNullOrEmpty (config ["ENABLE_DOTNET"]);
 
