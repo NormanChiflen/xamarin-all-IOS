@@ -169,6 +169,12 @@ steps:
     provisioning_extra_args: '-vvvv'
   timeoutInMinutes: 250
 
+- bash: |
+    set -x
+    set -e
+    $(Build.SourcesDirectory)/xamarin-macios/system-dependencies.sh --provision-simulators
+  displayName: 'Provision simulators'
+
 - template: ./run-tests.yml
   parameters:
     statusContext: ${{ parameters.statusContext }}
