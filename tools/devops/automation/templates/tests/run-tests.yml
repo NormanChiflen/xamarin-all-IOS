@@ -79,6 +79,14 @@ steps:
   displayName: Boostrap dotnet
   timeoutInMinutes: 30
 
+- bash: |
+    set -x
+    set -e
+    make -C tests -j8 all
+  workingDirectory: $(System.DefaultWorkingDirectory)/xamarin-macios
+  displayName: Build test dependencies
+  timeoutInMinutes: 30
+
 # Run tests. If we are using xamarin-storage add a periodic command to be executed by xharness, else, since we are using vsdrops do nothing.
 - bash: |
     set -x
