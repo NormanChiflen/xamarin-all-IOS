@@ -318,13 +318,16 @@ stages:
       testsLabels: '' # hardcoded has to be fixed, run all the things, we can split later
       statusContext: ${{ config['statusContext'] }} 
       iOSDeviceDemand: ${{ config['iOSDeviceDemand'] }} 
-      makeTarget: ${{ config['makeTarget'] }} 
+      ${{ if and(ne(variables['Build.Reason'], 'Schedule'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual'))) }}:
+        makeTarget: 'wrench-jenkins' # override when we are running on CI or manually to run all tests
+      ${{ else }}:
+        makeTarget: ${{ config['makeTarget'] }} 
       vsdropsPrefix: ${{ variables.vsdropsPrefix }}
       keyringPass: $(pass--lab--mac--builder--keychain)
       gitHubToken: ${{ variables['GitHub.Token'] }}
       xqaCertPass: $(xqa--certificates--password)
 
-# devices are optinal and will only be ran when we set them OR in CI
+# devices are optional and will only be ran when we set them OR in CI
 - ${{ if eq(parameters.runDeviceTests, true) }}:
   - ${{ if and(ne(variables['Build.Reason'], 'Schedule'), or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual'))) }}:
     - ${{ each config in parameters.deviceTestsConfigurations }}:
