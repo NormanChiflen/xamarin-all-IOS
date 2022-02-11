@@ -45,7 +45,7 @@ parameters:
 - name: keyringPass
   type: string
 
-- name: devicePrefix
+- name: testPrefix
   type: string
   default: 'ios' # default context, since we started dealing with iOS devices.
 
@@ -68,7 +68,7 @@ stages:
   condition: and(succeeded(), eq(dependencies.build_packages.outputs['build.configuration.RunDeviceTests'], 'True'))
   jobs:
   - job: tests
-    displayName: 'Run ${{ parameters.devicePrefix }} Device Tests'
+    displayName: 'Run ${{ parameters.testPrefix }} Device Tests'
     timeoutInMinutes: 1000
     pool:
       name: ${{ parameters.iOSDevicePool }}
@@ -83,7 +83,7 @@ stages:
         useXamarinStorage: ${{ parameters.useXamarinStorage }}
         vsdropsPrefix: ${{ parameters.vsdropsPrefix }}
         keyringPass: ${{ parameters.keyringPass }}
-        devicePrefix: ${{ parameters.devicePrefix }}
+        testPrefix: ${{ parameters.testPrefix }}
         makeTarget: ${{ parameters.makeTarget }}
         gitHubToken: ${{ parameters.gitHubToken }}
         xqaCertPass: ${{ parameters.xqaCertPass }}
@@ -100,7 +100,7 @@ stages:
     steps:
     - template: ../common/upload-vsdrops.yml
       parameters:
-        devicePrefix: ${{ parameters.devicePrefix }}
+        testPrefix: ${{ parameters.testPrefix }}
         provisioningFailed: $[ dependencies.tests.outputs['runTests.PROVISIONING_FAILED']
 
   - job: upload_vsts_tests
@@ -115,7 +115,7 @@ stages:
     steps:
     - template: ../common/upload-vsts-tests.yml
       parameters:
-        devicePrefix: ${{ parameters.devicePrefix }}
+        testPrefix: ${{ parameters.testPrefix }}
         provisioningFailed: $[ dependencies.tests.outputs['runTests.PROVISIONING_FAILED']
 
   - job: publish_html
@@ -140,4 +140,4 @@ stages:
       parameters:
         statusContext: ${{ parameters.statusContext }}
         vsdropsPrefix: ${{ parameters.vsdropsPrefix }}
-        devicePrefix: ${{ parameters.devicePrefix }}
+        testPrefix: ${{ parameters.testPrefix }}

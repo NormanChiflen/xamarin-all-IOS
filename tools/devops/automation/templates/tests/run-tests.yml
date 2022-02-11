@@ -14,7 +14,7 @@ parameters:
 - name: vsdropsPrefix
   type: string
 
-- name: devicePrefix
+- name: testPrefix
   type: string
   default: 'ios' # default context, since we started dealing with iOS devices.
 
@@ -108,7 +108,7 @@ steps:
   env:
     TESTS_EXTRA_ARGUMENTS: ${{ parameters.testsLabels }}
     USE_XAMARIN_STORAGE: ${{ parameters.useXamarinStorage }}
-    VSDROPS_URI: '${{ parameters.vsdropsPrefix }}/$(Build.BuildNumber)/$(Build.BuildId)/${{ parameters.devicePrefix }};/tests/' # uri used to create the vsdrops index using full uri
+    VSDROPS_URI: '${{ parameters.vsdropsPrefix }}/$(Build.BuildNumber)/$(Build.BuildId)/${{ parameters.testPrefix }};/tests/' # uri used to create the vsdrops index using full uri
     USE_TCP_TUNNEL: 'true'
   workingDirectory: $(System.DefaultWorkingDirectory)/xamarin-macios
   displayName: 'Run tests'
@@ -120,7 +120,7 @@ steps:
   displayName: 'Publish Artifact: TestSummary'
   inputs:
     targetPath: 'xamarin-macios/tests/TestSummary.md'
-    artifactName: TestSummary-${{ parameters.devicePrefix }}
+    artifactName: TestSummary-${{ parameters.testPrefix }}
   continueOnError: true
   condition: succeededOrFailed()
 
@@ -132,7 +132,7 @@ steps:
     }
   displayName: Set TestSummary
   env:
-    PREFIX: ${{ parameters.devicePrefix }}
+    PREFIX: ${{ parameters.testPrefix }}
 
 # Archive files for the Html Report so that the report can be easily uploaded as artifacts of the build.
 - task: ArchiveFiles@1
@@ -151,7 +151,7 @@ steps:
   displayName: 'Publish Artifact: HtmlReport'
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)/HtmlReport.zip'
-    artifactName: HtmlReport-${{ parameters.devicePrefix }}
+    artifactName: HtmlReport-${{ parameters.testPrefix }}
   continueOnError: true
   condition: succeededOrFailed()
 

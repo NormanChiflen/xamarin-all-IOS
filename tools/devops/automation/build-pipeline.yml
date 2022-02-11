@@ -76,7 +76,7 @@ parameters:
   type: object
   default: [
     {
-      devicePrefix: 'simulator',
+      testPrefix: 'simulator',
       stageName: 'simulator',
       displayName: 'Simulator Tests',
       iOSDevicePool: '', # TODO empty because we want to use the one used by the agent pool selector
@@ -93,7 +93,7 @@ parameters:
   type: object
   default: [
     {
-      devicePrefix: 'iOS64',
+      testPrefix: 'iOS64',
       stageName: 'ios64b_device',
       displayName: 'iOS64 Device Tests',
       iOSDevicePool: 'VSEng-Xamarin-Mac-Devices',
@@ -106,7 +106,7 @@ parameters:
       ]
     },
     {
-      devicePrefix: 'tvos',
+      testPrefix: 'tvos',
       stageName: 'tvos_device',
       displayName: 'tvOS Device Tests',
       iOSDevicePool: 'VSEng-Xamarin-Mac-Devices',
@@ -310,7 +310,7 @@ stages:
 - ${{ each config in parameters.simTestsConfigurations }}:
   - template: templates/tests/stage.yml
     parameters:
-      devicePrefix: ${{ config['devicePrefix'] }} 
+      testPrefix: ${{ config['testPrefix'] }} 
       stageName: ${{ config['stageName'] }} 
       displayName: ${{ config['displayName'] }} 
       iOSDevicePool: $(CIBuildPool) # hardcoded has to be fixed
@@ -330,7 +330,7 @@ stages:
     - ${{ each config in parameters.deviceTestsConfigurations }}:
       - template: templates/tests/stage.yml
         parameters:
-          devicePrefix: ${{ config['devicePrefix'] }} 
+          testPrefix: ${{ config['testPrefix'] }} 
           stageName: ${{ config['stageName'] }} 
           displayName: ${{ config['displayName'] }} 
           iOSDevicePool: ${{ config['iOSDevicePool'] }} 
@@ -370,7 +370,7 @@ stages:
 - ${{ if eq(variables['Build.Reason'], 'Schedule') }}: 
   - template: templates/tests/stage.yml
     parameters:
-      devicePrefix: 'iOS32b'
+      testPrefix: 'iOS32b'
       stageName: 'ios32b_device'
       displayName: 'iOS32b Device Tests'
       iOSDevicePool: 'VSEng-Xamarin-QA'

@@ -21,7 +21,7 @@ parameters:
 - name: vsdropsPrefix
   type: string
 
-- name: devicePrefix
+- name: testPrefix
   type: string 
   default: 'ios' # default context, since we started dealing with iOS devices. 
 
@@ -239,7 +239,7 @@ steps:
     env:
       BUILD_REVISION: $(Build.SourceVersion)
       CONTEXT: ${{ parameters.statusContext }}
-      DEVICE_PREFIX: ${{ parameters.devicePrefix }}
+      DEVICE_PREFIX: ${{ parameters.testPrefix }}
       GITHUB_TOKEN: $(GitHub.Token)
       TESTS_JOBSTATUS: $(TESTS_JOBSTATUS) # set by the runTests step
       TESTS_SUMMARY: $(TEST_SUMMARY_PATH)

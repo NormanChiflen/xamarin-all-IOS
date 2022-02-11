@@ -192,7 +192,7 @@ jobs:
   steps:
   - template: upload-vsdrops.yml
     parameters:
-      devicePrefix: sim
+      testPrefix: sim
       runTests: ${{ parameters.runTests }}
 
 - job: upload_vsts_tests
@@ -208,7 +208,7 @@ jobs:
   steps:
   - template: ../common/upload-vsts-tests.yml
     parameters:
-      devicePrefix: sim
+      testPrefix: sim
 
 - job: publish_html
   displayName: 'Publish Html report in VSDrops'
@@ -243,4 +243,4 @@ jobs:
       runTests: ${{ parameters.runTests }}
       vsdropsPrefix: ${{ parameters.vsdropsPrefix }}
       enableAPIDiff: ${{ parameters.enableAPIDiff }}
-      devicePrefix: sim
+      testPrefix: sim

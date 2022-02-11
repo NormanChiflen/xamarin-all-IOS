@@ -33,7 +33,7 @@ parameters:
 - name: keyringPass
   type: string
 
-- name: devicePrefix
+- name: testPrefix
   type: string
   default: 'ios' # default context, since we started dealing with iOS devices.
 
@@ -178,7 +178,7 @@ steps:
     statusContext: ${{ parameters.statusContext }}
     testsLabels: ${{ parameters.testsLabels }}
     vsdropsPrefix: ${{ parameters.vsdropsPrefix }}
-    devicePrefix: ${{ parameters.devicePrefix }}
+    testPrefix: ${{ parameters.testPrefix }}
     makeTarget: ${{ parameters.makeTarget }}
 
 # clean the bot after we use it
