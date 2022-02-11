@@ -536,13 +536,22 @@ namespace Xamarin.Tests
 
 		public static string SdkRootXI {
 			get {
-				return Path.Combine (TargetDirectoryXI, "Library", "Frameworks", "Xamarin.iOS.framework", "Versions", "Current");
+				var path = Path.Combine (TargetDirectoryXI, "Library", "Frameworks", "Xamarin.iOS.framework", "Versions", "Current");
+				// if not present, use the system one
+				if (!Directory.Exists (path)) {
+					path = Path.Combine ("/", "Library", "Frameworks", "Xamarin.iOS.framework", "Versions", "Current");
+				}
+				return path;
 			}
 		}
 
 		public static string SdkRootXM {
 			get {
-				return Path.Combine (TargetDirectoryXM, "Library", "Frameworks", "Xamarin.Mac.framework", "Versions", "Current");
+				var path = Path.Combine (TargetDirectoryXM, "Library", "Frameworks", "Xamarin.Mac.framework", "Versions", "Current");
+				if (!Directory.Exists (path)) {
+					path = ("/", "Library", "Frameworks", "Xamarin.Mac.framework", "Versions", "Current");
+				}
+				return path;
 			}
 		}
 
