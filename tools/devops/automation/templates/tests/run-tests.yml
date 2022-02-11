@@ -113,7 +113,7 @@ steps:
   workingDirectory: $(System.DefaultWorkingDirectory)/xamarin-macios
   displayName: 'Run tests'
   name: runTests # not to be confused with the displayName, this is used to later use the name of the step to access the output variables from an other job
-  timeoutInMinutes: 600
+  timeoutInMinutes: 720
 
 # Upload TestSummary as an artifact.
 - task: PublishPipelineArtifact@1
