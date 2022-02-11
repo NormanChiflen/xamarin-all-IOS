@@ -126,12 +126,10 @@ steps:
       if ($i.tag -like "xamarin-ios*" -and -not ($i.url -like "*notarized*")) {
         $url = $i.url
         Write-Host "##vso[task.setvariable variable=XI_PACKAGE;]$url"
-        break
       }
       if ($i.url -match ".*/xamarin.mac-[0-9]*[.][0-9]*[.][0-9]*[.][0-9]*[.]pkg$" -and -not ($i.url -like "*notarized*")) {
         $url = $i.url
         Write-Host "##vso[task.setvariable variable=XM_PACKAGE;]$url"
-        break
       }
     }
   displayName: 'Set iOS pkgs url'
