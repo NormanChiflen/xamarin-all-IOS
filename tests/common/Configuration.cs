@@ -549,7 +549,7 @@ namespace Xamarin.Tests
 			get {
 				var path = Path.Combine (TargetDirectoryXM, "Library", "Frameworks", "Xamarin.Mac.framework", "Versions", "Current");
 				if (!Directory.Exists (path)) {
-					path = ("/", "Library", "Frameworks", "Xamarin.Mac.framework", "Versions", "Current");
+					path = Path.Combine ("/", "Library", "Frameworks", "Xamarin.Mac.framework", "Versions", "Current");
 				}
 				return path;
 			}
